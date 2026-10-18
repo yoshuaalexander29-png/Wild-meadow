@@ -11,10 +11,6 @@ const license = fs.readFileSync(path.join(root, 'THIRD_PARTY_NOTICES.md'), 'utf8
 
 for (const [label, needle] of [
   ['grass module imported by game', "from './grass-system.js'"],
-  ['shared terrain height function', 'function meadowGroundHeight(x,z)'],
-  ['grass uses terrain height', 'getGroundHeight:meadowGroundHeight'],
-  ['grass uses current player world position', 'x:hero.root.position.x,z:hero.root.position.z'],
-  ['grass updates in existing frame loop', 'grassSystem.update(delta)'],
   ['instanced grass geometry', 'new THREE.InstancedMesh(geometry, material, count)'],
   ['vertex shader wind animation', 'float wmBroad = sin'],
   ['player interaction shader', 'float wmPlayerInfluence'],
@@ -25,6 +21,15 @@ for (const [label, needle] of [
   assert.ok((label === 'grass module imported by game' ? html : grassSource).includes(needle),
     'Missing integration: ' + label);
 }
+for (const [label, needle] of [
+  ['shared terrain height function', 'function meadowGroundHeight(x,z)'],
+  ['grass uses terrain height', 'getGroundHeight:meadowGroundHeight'],
+  ['grass uses current player world position', 'x:hero.root.position.x,z:hero.root.position.z'],
+  ['grass updates in existing frame loop', 'grassSystem.update(delta)'],
+]) {
+  assert.ok(html.includes(needle), 'Missing game integration: ' + label);
+}
+
 assert.doesNotMatch(grassSource, /from ['"]three\/(?:webgpu|tsl)['"]/, 'The WebGL port must not import the upstream TSL/WebGPU path');
 assert.match(grassSource, /SPDX-License-Identifier: MIT/);
 assert.match(license, /Copyright \(c\) 2026 Matthew Kissinger/);
