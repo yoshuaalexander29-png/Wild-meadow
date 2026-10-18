@@ -8,18 +8,19 @@ const manifest = fs.readFileSync(path.join(root, 'ASSET_MANIFEST.md'), 'utf8');
 
 for (const [label, needle] of [
   ['GLTFLoader import is present', "from 'three/addons/loaders/GLTFLoader.js'"],
-  ['warrior GLB URL is configured', 'Knight_Male.glb?download=1'],
+  ['single active warrior GLB is configured', 'Knight_Male.glb?download=1'],
   ['character loading remains centralized', 'function loadCharacter(url,label,x,z,targetHeight'],
   ['character animation mixer is retained', 'new THREE.AnimationMixer(root)'],
   ['character follows actual terrain height', 'meadowGroundHeight(root.position.x,root.position.z)'],
   ['toon outline integration remains', 'outlinePass.selectedObjects=[root]'],
 ]) assert.ok(html.includes(needle), 'Missing asset integration: ' + label);
 
-for (const [label, needle] of [
-  ['active warrior attribution', 'Knight_Male.glb'],
-  ['CC0 license provenance', 'CC0 1.0 Universal'],
-  ['retained forest character explicitly marked inactive', 'not loaded by the current experimental cinematic scene'],
-]) assert.ok(manifest.includes(needle), 'Missing asset provenance: ' + label);
+assert.match(html, /const ASSETS=\{warrior:/, 'Only the active warrior asset should be configured');
+assert.doesNotMatch(html, /ASSETS\.(sword|forest|centaur)|Sword_Gold\.glb|zombie-apocalypse-kit|Characters_Lis\.glb/i,
+  'Removed prop/character assets must not remain in the active scene');
+assert.match(manifest, /Knight_Male\.glb/, 'Active warrior provenance must be documented');
+assert.doesNotMatch(manifest, /Sword_Gold\.glb|Characters_Lis\.glb|zombie-apocalypse-kit|forest wanderer/i,
+  'Removed character/prop assets must not remain in the active manifest');
+assert.match(manifest, /CC0 1\.0 Universal/, 'Active asset licence provenance must be retained');
 
-assert.doesNotMatch(html, /Characters_Lis\.glb/, 'The inactive forest-wanderer asset must not be requested by this scene');
-console.log('Wild Meadow asset integration and provenance checks passed.');
+console.log('Wild Meadow single-character asset integration and provenance checks passed.');
