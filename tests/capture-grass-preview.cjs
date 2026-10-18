@@ -40,7 +40,7 @@ const server = http.createServer((req, res) => {
     const assetStatuses = {};
     page.on('response', response => {
       const url = response.url();
-      for (const [key, suffix] of Object.entries({ grass: '/grass-system.js', warrior: 'Knight_Male.glb', sword: 'Sword_Gold.glb' })) {
+      for (const [key, suffix] of Object.entries({ grass: '/grass-system.js', warrior: 'Knight_Male.glb' })) {
         if (url.includes(suffix)) assetStatuses[key] = response.status();
       }
     });
