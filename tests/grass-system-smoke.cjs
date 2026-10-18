@@ -25,15 +25,17 @@ for (const [label, needle] of [
 for (const [label, needle] of [
   ['shared terrain height function', 'function meadowGroundHeight(x,z)'],
   ['grass uses terrain height', 'getGroundHeight:meadowGroundHeight'],
-  ['grass interaction reads current character position', 'active:exploreMode'],
-  ['Explore mode toggle', 'id="explore-toggle"'],
-  ['keyboard movement mapping', "KeyW:'forward'"],
-  ['touch movement controls', 'data-move="forward"'],
-  ['jump input', "keys.has('jump')&&grounded"],
+  ['cinematic visual-only scene disables player wake', 'getPlayerState:()=>null'],
   ['grass updates in existing frame loop', 'grassSystem.update(delta)'],
+  ['grass module is disposed by its API', 'dispose()'],
 ]) {
-  assert.ok(html.includes(needle), 'Missing game integration: ' + label);
+  assert.ok((label === 'grass module is disposed by its API' ? grassSource : html).includes(needle),
+    'Missing game integration: ' + label);
 }
+for (const [label, pattern] of [
+  ['prototype controls are absent', /explore-ui|explore-toggle|touch-controls|data-move=/],
+  ['forest character is absent', /Characters_Lis\.glb|promiseForest/],
+]) assert.doesNotMatch(html, pattern, 'Unexpected visual-only regression: ' + label);
 
 assert.doesNotMatch(grassSource, /from ['"]three\/(?:webgpu|tsl)['"]/, 'The WebGL port must not import the upstream TSL/WebGPU path');
 assert.match(grassSource, /SPDX-License-Identifier: MIT/);
