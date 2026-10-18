@@ -46,10 +46,15 @@ const server = http.createServer((req, res) => {
     await page.close();
   }
   try {
-    await capture({ width: 1440, height: 900 }, 'wild-meadow-desktop.png');
-    await capture({ width: 390, height: 844 }, 'wild-meadow-mobile.png');
-    assert.deepEqual(report.pageErrors, [], 'Uncaught page errors were reported');
-    assert.deepEqual(report.shaderErrors, [], 'Shader compilation errors were reported');
+    try {
+      await capture({ width: 1440, height: 900 }, 'wild-meadow-desktop.png');
+      await capture({ width: 390, height: 844 }, 'wild-meadow-mobile.png');
+      assert.deepEqual(report.pageErrors, [], 'Uncaught page errors were reported');
+      assert.deepEqual(report.shaderErrors, [], 'Shader compilation errors were reported');
+    } catch (error) {
+      console.error('Browser evidence report:', JSON.stringify(report, null, 2));
+      throw error;
+    }
     console.log(JSON.stringify(report, null, 2));
   } finally {
     await browser.close();
