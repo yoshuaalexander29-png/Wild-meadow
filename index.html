@@ -38,7 +38,7 @@ function hill(x,z,sx,sy,sz,color){const m=new THREE.Mesh(new THREE.IcosahedronGe
 for(const h of [[-14,-20,10,4,5,'#a9c3a0'],[-4,-24,12,5,5,'#98b995'],[10,-22,13,5,6,'#8cad8c'],[21,-17,9,4,5,'#aec6a0']])hill(...h);
 // Distant, overlapping mountain ridges create a stronger sense of scale and atmospheric depth.
 for(const h of [[-27,-39,17,9,8,'#b0c9b5'],[-13,-43,19,12,9,'#a5c2ad'],[6,-45,22,13,10,'#9dbba6'],[27,-40,18,10,9,'#b4cbb6'],[43,-46,20,12,10,'#a7c2ac']])hill(...h);
-// Original environmental staging; the hero characters below are loaded GLB assets, not procedural stand-ins.
+// Original environmental staging; the active warrior is a loaded GLB asset, not a procedural stand-in.
 const seed=0x57494c44;let state=seed;const rnd=()=>((state=(Math.imul(state,1664525)+1013904223)>>>0)/4294967296);
 const treeCollision=[];const trunkMat=mat('#856447'),leafMats=['#3b704f','#478158','#578f60','#6b9c68'].map(c=>mat(c));
 function tree(x,z,scale=1){const g=new THREE.Group();const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.17,.28,2.4,7),trunkMat);trunk.position.y=1.2;g.add(trunk);for(let i=0;i<5;i++){const crown=new THREE.Mesh(new THREE.IcosahedronGeometry(1,1),leafMats[(i+Math.floor(rnd()*3))%leafMats.length]);crown.position.set((rnd()-.5)*.7,2.0+i*.38,(rnd()-.5)*.5);crown.scale.set(1.0+rnd()*.35,.8+rnd()*.4,.85+rnd()*.3);crown.castShadow=true;crown.receiveShadow=true;g.add(crown)}trunk.castShadow=true;trunk.receiveShadow=true;g.position.set(x,meadowGroundHeight(x,z),z);g.scale.setScalar(scale);scene.add(g);treeCollision.push({x,z,radius:.48*scale});return g}
@@ -64,7 +64,7 @@ for(let i=0;i<170;i++){const x=(rnd()-.5)*30,z=2-rnd()*29;if(Math.abs(x)<2.5&&z>
 const stoneMaterials=['#a9ad9b','#b8b29c','#8f9c91'].map(c=>new THREE.MeshStandardMaterial({color:c,roughness:1}));
 for(let i=0;i<34;i++){const x=(rnd()-.5)*30,z=1-rnd()*26;if(Math.abs(x)<2.4&&z>-5)continue;const stone=new THREE.Mesh(new THREE.IcosahedronGeometry(.12+rnd()*.19,1),stoneMaterials[i%stoneMaterials.length]);stone.position.set(x,meadowGroundHeight(x,z)+.025,z);stone.scale.set(1.2,.55,.8);stone.rotation.y=rnd()*Math.PI;scene.add(stone)}
 // No decorative ground-disc shadows: these created two disconnected dark circles and a ghost-shadow effect.
-const loader=new GLTFLoader();const loaded=[];let loadCount=0;function showError(label,e){console.error('Wild Meadow asset load failed:',label,e);if(diagnostics)diagnostics.errors.push({label,message:String(e)});}
+const loader=new GLTFLoader();const loaded=[];function showError(label,e){console.error('Wild Meadow asset load failed:',label,e);if(diagnostics)diagnostics.errors.push({label,message:String(e)});}
 // Adapted from ZaneAtega's GLSL anime-shader reference: add a restrained Fresnel rim to existing GLTF materials
 // without replacing their maps, skinning, or animation-compatible standard-material pipeline.
 function addAnimeRim(material){
