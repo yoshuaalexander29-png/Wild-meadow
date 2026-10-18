@@ -23,6 +23,8 @@ jobs:
         run: node tests/grass-system-smoke.cjs
       - name: Test existing controller and rendering integration
         run: node tests/threejs-adaptation-smoke.cjs
+      - name: Test asset loading and attribution
+        run: node tests/asset-integration-smoke.cjs
 
   browser-preview:
     runs-on: ubuntu-latest
