@@ -1,5 +1,5 @@
 {
-  "url": "http://127.0.0.1:46231/index.html",
+  "url": "http://127.0.0.1:41311/index.html",
   "screenshots": [
     "screenshots/wild-meadow-establishing-desktop.png",
     "screenshots/wild-meadow-midland-desktop.png",
@@ -21,13 +21,12 @@
           "Silverland knight"
         ],
         "errors": [],
-        "frames": 42,
+        "frames": 37,
         "grassReady": true,
         "ready": true
       },
       "assetStatuses": {
         "grass": 200,
-        "sword": 200,
         "warrior": 200
       },
       "pageErrors": []
@@ -46,14 +45,13 @@
           "Silverland knight"
         ],
         "errors": [],
-        "frames": 53,
+        "frames": 56,
         "grassReady": true,
         "ready": true
       },
       "assetStatuses": {
         "grass": 200,
-        "warrior": 200,
-        "sword": 200
+        "warrior": 200
       },
       "pageErrors": []
     },
@@ -71,13 +69,12 @@
           "Silverland knight"
         ],
         "errors": [],
-        "frames": 52,
+        "frames": 56,
         "grassReady": true,
         "ready": true
       },
       "assetStatuses": {
         "grass": 200,
-        "sword": 200,
         "warrior": 200
       },
       "pageErrors": []
@@ -96,14 +93,13 @@
           "Silverland knight"
         ],
         "errors": [],
-        "frames": 65,
+        "frames": 33,
         "grassReady": true,
         "ready": true
       },
       "assetStatuses": {
         "grass": 200,
-        "warrior": 200,
-        "sword": 200
+        "warrior": 200
       },
       "pageErrors": []
     }
