@@ -8,6 +8,7 @@
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.183.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.183.0/examples/jsm/"}}</script>
 <script type="module">
 import * as THREE from 'three';
+import { createGrassSystem } from './grass-system.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -23,7 +24,9 @@ scene.add(new THREE.HemisphereLight('#eaf7eb','#6d7654',2.0));const sun=new THRE
 const toonRamp=new THREE.DataTexture(new Uint8Array([34,34,34,255,92,92,92,255,164,164,164,255,245,245,245,255]),4,1,THREE.RGBAFormat);
 toonRamp.magFilter=THREE.NearestFilter;toonRamp.minFilter=THREE.NearestFilter;toonRamp.generateMipmaps=false;toonRamp.needsUpdate=true;
 const mat=(color,roughness=1)=>new THREE.MeshToonMaterial({color,gradientMap:toonRamp,flatShading:true});
-const groundGeo=new THREE.PlaneGeometry(100,100,72,72);const gp=groundGeo.attributes.position;for(let i=0;i<gp.count;i++){const x=gp.getX(i),z=-gp.getY(i);const fade=THREE.MathUtils.smoothstep(Math.hypot(x,z),4,18);gp.setZ(i,fade*(Math.sin(x*.19+z*.08)*.28+Math.sin(z*.31-x*.11)*.14));}groundGeo.computeVertexNormals();const ground=new THREE.Mesh(groundGeo,mat('#78985a'));ground.rotation.x=-Math.PI/2;ground.position.y=-.05;ground.receiveShadow=true;scene.add(ground);
+function meadowHeightOffset(x,z){const fade=THREE.MathUtils.smoothstep(Math.hypot(x,z),4,18);return fade*(Math.sin(x*.19+z*.08)*.28+Math.sin(z*.31-x*.11)*.14)}
+function meadowGroundHeight(x,z){return -.05+meadowHeightOffset(x,z)}
+const groundGeo=new THREE.PlaneGeometry(100,100,72,72);const gp=groundGeo.attributes.position;for(let i=0;i<gp.count;i++){const x=gp.getX(i),z=-gp.getY(i);gp.setZ(i,meadowHeightOffset(x,z));}groundGeo.computeVertexNormals();const ground=new THREE.Mesh(groundGeo,mat('#78985a'));ground.rotation.x=-Math.PI/2;ground.position.y=-.05;ground.receiveShadow=true;scene.add(ground);
 // Rolling, layered hill silhouettes; intentionally low-poly and palette-controlled.
 function hill(x,z,sx,sy,sz,color){const m=new THREE.Mesh(new THREE.IcosahedronGeometry(1,2),mat(color));m.position.set(x,sy*.36,z);m.scale.set(sx,sy,sz);scene.add(m);return m}
 for(const h of [[-14,-20,10,4,5,'#a9c3a0'],[-4,-24,12,5,5,'#98b995'],[10,-22,13,5,6,'#8cad8c'],[21,-17,9,4,5,'#aec6a0']])hill(...h);
@@ -34,9 +37,17 @@ const seed=0x57494c44;let state=seed;const rnd=()=>((state=(Math.imul(state,1664
 const treeCollision=[];const trunkMat=mat('#76563c'),leafMats=['#2d6046','#376f4b','#478052','#5b8c58'].map(c=>mat(c));
 function tree(x,z,scale=1){const g=new THREE.Group();const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.17,.28,2.4,7),trunkMat);trunk.position.y=1.2;g.add(trunk);for(let i=0;i<5;i++){const crown=new THREE.Mesh(new THREE.IcosahedronGeometry(1,1),leafMats[(i+Math.floor(rnd()*3))%leafMats.length]);crown.position.set((rnd()-.5)*.7,2.0+i*.38,(rnd()-.5)*.5);crown.scale.set(1.0+rnd()*.35,.8+rnd()*.4,.85+rnd()*.3);crown.castShadow=true;crown.receiveShadow=true;g.add(crown)}trunk.castShadow=true;trunk.receiveShadow=true;g.position.set(x,0,z);g.scale.setScalar(scale);scene.add(g);treeCollision.push({x,z,radius:.48*scale});return g}
 for(let i=0;i<34;i++){let z=-5-rnd()*26,x=(rnd()-.5)*29;if(Math.abs(x)<3.4&&z>-9)continue;tree(x,z,.65+rnd()*.8)}
-// Meadow blades use instancing to keep mobile draw cost low.
-const grassGeo=new THREE.ConeGeometry(.055,.42,3);grassGeo.translate(0,.21,0);const grassPalette=['#4f7842','#6d9149','#8ca955','#3d7144','#a5b765'];
-for(let group=0;group<grassPalette.length;group++){const count=group===0?1700:700,mesh=new THREE.InstancedMesh(grassGeo,mat(grassPalette[group]),count);const dummy=new THREE.Object3D();for(let i=0;i<count;i++){let x=(rnd()-.5)*35,z=5-rnd()*33;if(Math.abs(x)<3.0&&z>-7&&z<1){x+=x<0?-2.6:2.6}dummy.position.set(x,-.02,z);dummy.rotation.set(0,rnd()*Math.PI,((rnd()-.5)*.18));let s=.55+rnd()*1.1;dummy.scale.set(s,s*(.65+rnd()*.8),s);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix)}scene.add(mesh)}
+// Instanced, curved multi-blade tufts with shader wind and a bounded player wake.
+const grassSystem=createGrassSystem({
+ THREE,scene,getGroundHeight:meadowGroundHeight,
+ getPlayerState:()=>{const hero=loaded.find(c=>c.label==='Silverland knight')||loaded[0];return hero?{x:hero.root.position.x,z:hero.root.position.z,heading:hero.root.rotation.y,active:exploreMode}:null},
+ isExcluded:(x,z)=>{
+  if(Math.abs(x)<2.65&&z>-8&&z<1.4)return true;
+  if((x+1.7)**2+(z+1.3)**2<1.15**2||(x-1.55)**2+(z+1.5)**2<1.15**2)return true;
+  return treeCollision.some(t=>(x-t.x)**2+(z-t.z)**2<(t.radius+.28)**2);
+ },
+ quality:innerWidth<700?'low':'medium'
+});
 // Flower patches create colour groupings rather than uniform noise.
 const flowerColors=['#e6c77a','#dca29b','#f4edcf','#b9c4df','#e9b95d'];for(let patch=0;patch<22;patch++){let cx=(rnd()-.5)*26,cz=1-rnd()*25;if(Math.abs(cx)<3.2&&cz>-6)continue;for(let i=0;i<9;i++){let x=cx+(rnd()-.5)*1.7,z=cz+(rnd()-.5)*1.7;const stem=new THREE.Mesh(new THREE.CylinderGeometry(.012,.018,.24,4),mat('#4f7a42'));stem.position.set(x,.12,z);scene.add(stem);const flower=new THREE.Mesh(new THREE.IcosahedronGeometry(.075,1),mat(flowerColors[patch%flowerColors.length]));flower.scale.set(1,.55,1);flower.position.set(x,.27,z);scene.add(flower)}}
 // Contact shadows are soft translucent discs, kept separate from model meshes.
@@ -104,6 +115,7 @@ if(exploreMode&&!paused){
 }else{
  const sh=cameraAt(Math.min(t,20));camera.fov=sh.f;camera.position.set(sh.p[0]+yaw*2,sh.p[1]+pitch,sh.p[2]);camera.lookAt(sh.look[0],sh.look[1],sh.look[2]);
 }
+grassSystem.update(delta);
 camera.updateProjectionMatrix();
 if(innerWidth>=700)composer.render();else renderer.render(scene,camera);
 if(t>=20&&!paused&&!manual){start=now-20000;document.querySelector('#caption').innerHTML='<b>THE PATH REMAINS</b><br>Two travellers. One old forest. The journey begins.'}}
