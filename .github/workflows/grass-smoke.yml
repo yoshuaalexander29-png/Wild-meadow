@@ -39,6 +39,9 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Render desktop and mobile screenshots
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
         run: node tests/capture-grass-preview.cjs
       - name: Commit genuine screenshots to the feature branch
         if: success() && github.event_name == 'push' && !startsWith(github.event.head_commit.message, 'visual evidence:')
