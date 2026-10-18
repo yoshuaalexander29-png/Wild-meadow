@@ -21,3 +21,25 @@ jobs:
         run: node tests/grass-system-smoke.cjs
       - name: Test existing controller and rendering integration
         run: node tests/threejs-adaptation-smoke.cjs
+
+  browser-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright
+        run: npm install --no-save playwright
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Render desktop and mobile screenshots
+        run: node tests/capture-grass-preview.cjs
+      - name: Publish genuine browser captures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wild-meadow-grass-browser-captures
+          path: screenshots/*.png
+          if-no-files-found: warn
+          retention-days: 14
