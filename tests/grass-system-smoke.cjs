@@ -17,6 +17,7 @@ for (const [label, needle] of [
   ['fading movement wake', 'const fadeOut = 1 - smooth01(age01)'],
   ['quality tiers', 'const QUALITY_COUNTS'],
   ['explicit resource disposal', 'geometry.dispose();\n    material.dispose();'],
+  ['instanced grass uses per-instance colours', 'vertexColors: true'],
 ]) {
   assert.ok((label === 'grass module imported by game' ? html : grassSource).includes(needle),
     'Missing integration: ' + label);
