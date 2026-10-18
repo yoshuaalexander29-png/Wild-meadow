@@ -25,7 +25,7 @@ const server = http.createServer((req, res) => {
   const address = server.address();
   const baseUrl = `http://127.0.0.1:${address.port}/index.html`;
   const browser = await chromium.launch({ headless: true, args: ['--enable-webgl', '--ignore-gpu-blocklist', '--use-gl=angle', '--use-angle=swiftshader'] });
-  const report = { url: baseUrl, screenshots: [], views: [], pageErrors: [], consoleErrors: [], shaderErrors: [], failedRequests: [] };
+  const report = { sourceCommit: process.env.GITHUB_SHA || null, workflowRunId: process.env.GITHUB_RUN_ID || null, capturedAt: new Date().toISOString(), browserVersion: browser.version(), url: baseUrl, screenshots: [], views: [], pageErrors: [], consoleErrors: [], shaderErrors: [], failedRequests: [] };
   async function capture(viewport, label, shot) {
     const page = await browser.newPage({ viewport, deviceScaleFactor: 1, isMobile: viewport.width < 700, hasTouch: viewport.width < 700 });
     const localErrors = [];
