@@ -23,79 +23,57 @@ const server = http.createServer((req, res) => {
 (async () => {
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const address = server.address();
+  const baseUrl = `http://127.0.0.1:${address.port}/index.html`;
   const browser = await chromium.launch({ headless: true, args: ['--enable-webgl', '--ignore-gpu-blocklist', '--use-gl=angle', '--use-angle=swiftshader'] });
-  const report = {
-    url: `http://127.0.0.1:${address.port}/index.html`,
-    screenshots: [],
-    grassModuleStatus: null,
-    characterAssetStatus: null,
-    swordAssetStatus: null,
-    moveControlCount: null,
-    exploreEnabled: false,
-    pageErrors: [],
-    consoleErrors: [],
-    shaderErrors: [],
-    failedRequests: [],
-  };
-
-  async function openPage(viewport) {
+  const report = { url: baseUrl, screenshots: [], views: [], pageErrors: [], consoleErrors: [], shaderErrors: [], failedRequests: [] };
+  async function capture(viewport, label, shot) {
     const page = await browser.newPage({ viewport, deviceScaleFactor: 1, isMobile: viewport.width < 700, hasTouch: viewport.width < 700 });
-    page.on('pageerror', error => report.pageErrors.push(String(error)));
+    const localErrors = [];
+    page.on('pageerror', error => { report.pageErrors.push(String(error)); localErrors.push(String(error)); });
     page.on('console', message => {
       if (message.type() === 'error') {
         report.consoleErrors.push(message.text());
-        if (/shader|compile|GL_INVALID|THREE\\.WebGLProgram/i.test(message.text())) report.shaderErrors.push(message.text());
+        if (/shader|compile|GL_INVALID|THREE\\.WebGLProgram|WebGLRenderer/i.test(message.text())) report.shaderErrors.push(message.text());
       }
     });
     page.on('requestfailed', request => report.failedRequests.push({ url: request.url(), error: request.failure()?.errorText }));
+    const assetStatuses = {};
     page.on('response', response => {
       const url = response.url();
-      if (new URL(url).pathname.endsWith('/grass-system.js')) report.grassModuleStatus = response.status();
-      if (url.includes('Knight_Male.glb')) report.characterAssetStatus = response.status();
-      if (url.includes('Sword_Gold.glb')) report.swordAssetStatus = response.status();
+      for (const [key, suffix] of Object.entries({ grass: '/grass-system.js', warrior: 'Knight_Male.glb', sword: 'Sword_Gold.glb' })) {
+        if (url.includes(suffix)) assetStatuses[key] = response.status();
+      }
     });
-    await page.goto(report.url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await page.goto(`${baseUrl}?test=1&shot=${shot}`, { waitUntil: 'domcontentloaded', timeout: 60000 });
     await page.waitForSelector('canvas', { timeout: 30000 });
-    await page.waitForFunction(() => document.querySelector('canvas')?.width > 0, undefined, { timeout: 15000 });
-    await page.waitForTimeout(5000);
-    assert.equal(report.grassModuleStatus, 200, 'grass-system.js must load');
-    assert.equal(report.characterAssetStatus, 200, 'The warrior GLB must load');
-    assert.equal(report.swordAssetStatus, 200, 'The sword GLB must load');
-    assert.equal(await page.locator('#explore-toggle').count(), 1, 'Explore toggle must exist');
-    report.moveControlCount = await page.locator('[data-move]').count();
-    assert.equal(report.moveControlCount, 5, 'Expected four directions and Jump');
-    return page;
+    await page.waitForFunction(() => window.__wildMeadowDiagnostics?.frames > 30, undefined, { timeout: 30000 });
+    await page.waitForTimeout(1800);
+    const diag = await page.evaluate(() => window.__wildMeadowDiagnostics || null);
+    assert.ok(diag, 'browser diagnostics object must exist');
+    assert.ok(diag.frames > 30, 'animation loop must render frames');
+    assert.equal(diag.grassReady, true, 'grass system must initialize');
+    assert.ok((assetStatuses.grass || 0) === 200, 'grass module must load with HTTP 200');
+    assert.ok((assetStatuses.warrior || 0) === 200, 'warrior GLB must load with HTTP 200');
+    assert.ok(diag.loadedAssets.includes('warrior'), 'warrior GLB must finish loading');
+    assert.equal(await page.locator('#explore-ui').count(), 0, 'visual-only scene must not expose prototype UI');
+    const screenshot = `screenshots/${label}.png`;
+    await page.screenshot({ path: path.join(root, screenshot), fullPage: false, timeout: 60000 });
+    report.screenshots.push(screenshot);
+    report.views.push({ label, viewport, shot, diagnostics: diag, assetStatuses, pageErrors: localErrors });
+    await page.close();
   }
-
   try {
-    const desktop = await openPage({ width: 1440, height: 900 });
-    await desktop.screenshot({ path: path.join(out, 'wild-meadow-desktop-cinematic.png'), fullPage: false, timeout: 60000 });
-    report.screenshots.push('screenshots/wild-meadow-desktop-cinematic.png');
-
-    await desktop.locator('#explore-toggle').click();
-    await desktop.waitForFunction(() => document.body.classList.contains('exploring'), undefined, { timeout: 5000 });
-    report.exploreEnabled = true;
-    await desktop.keyboard.down('w');
-    await desktop.waitForTimeout(600);
-    await desktop.keyboard.up('w');
-    await desktop.waitForTimeout(800);
-    await desktop.screenshot({ path: path.join(out, 'wild-meadow-desktop-explore.png'), fullPage: false });
-    report.screenshots.push('screenshots/wild-meadow-desktop-explore.png');
-    await desktop.close();
-
-    const mobile = await openPage({ width: 390, height: 844 });
-    await mobile.locator('#explore-toggle').click();
-    await mobile.waitForFunction(() => document.body.classList.contains('exploring'), undefined, { timeout: 5000 });
-    assert.equal(await mobile.locator('[data-move]').count(), 5);
-    await mobile.waitForTimeout(800);
-    await mobile.screenshot({ path: path.join(out, 'wild-meadow-mobile-explore.png'), fullPage: false });
-    report.screenshots.push('screenshots/wild-meadow-mobile-explore.png');
-    await mobile.close();
-
-    assert.deepEqual(report.pageErrors, [], 'Uncaught page errors were reported');
-    assert.deepEqual(report.shaderErrors, [], 'Shader compilation errors were reported');
+    await capture({ width: 1440, height: 900 }, 'wild-meadow-establishing-desktop', 0);
+    await capture({ width: 1440, height: 900 }, 'wild-meadow-midland-desktop', 6.5);
+    await capture({ width: 1440, height: 900 }, 'wild-meadow-character-desktop', 15.5);
+    await capture({ width: 390, height: 844 }, 'wild-meadow-mobile', 0);
+    assert.deepEqual(report.pageErrors, [], 'uncaught page errors were reported');
+    assert.deepEqual(report.shaderErrors, [], 'shader/WebGL compilation errors were reported');
+    assert.deepEqual(report.failedRequests, [], 'network requests failed');
+    fs.writeFileSync(path.join(out, 'browser-report.json'), JSON.stringify(report, null, 2));
     console.log(JSON.stringify(report, null, 2));
   } catch (error) {
+    fs.writeFileSync(path.join(out, 'browser-report.json'), JSON.stringify(report, null, 2));
     console.error('Browser evidence report:', JSON.stringify(report, null, 2));
     throw error;
   } finally {
