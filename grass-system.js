@@ -5,8 +5,8 @@
 // This file is a focused original port for Three.js 0.183.0/WebGLRenderer;
 // it does not import the upstream TSL/WebGPU modules or generated demo data.
 
-const QUALITY_COUNTS = Object.freeze({ low: 850, medium: 2400, high: 4200 });
-const PALETTE = ['#729d59', '#83ad65', '#96bc70', '#a7c87c', '#bdd58e'];
+const QUALITY_COUNTS = Object.freeze({ low: 650, medium: 1800, high: 3200 });
+const PALETTE = ['#7cae5e', '#8fbd6d', '#a4ca7d', '#b5d38b', '#c6de9c'];
 
 function mulberry32(seed) {
   let state = seed >>> 0;
@@ -35,7 +35,7 @@ function buildTuftGeometry(THREE) {
     const rootRadius = 0.055 + (blade % 3) * 0.026;
     const rootX = Math.cos(angle) * rootRadius;
     const rootZ = Math.sin(angle) * rootRadius;
-    const lean = 0.22 + (blade % 4) * 0.075;
+    const lean = 0.32 + (blade % 4) * 0.1;
     const base = positions.length / 3;
 
     for (const t of rows) {
@@ -90,7 +90,7 @@ export function createGrassSystem({
       : requestedQuality;
   const count = QUALITY_COUNTS[effectiveQuality];
   const geometry = buildTuftGeometry(THREE);
-  const material = new THREE.MeshStandardMaterial({
+  const material = new THREE.MeshBasicMaterial({
     color: '#ffffff',
     roughness: 1,
     metalness: 0,
@@ -188,7 +188,7 @@ transformed.z += wmLocalBend.y * wmTip;`,
     mesh.setMatrixAt(placed, dummy.matrix);
 
     color.set(PALETTE[Math.floor(rng() * PALETTE.length)]);
-    color.multiplyScalar(0.9 + rng() * 0.2);
+    color.multiplyScalar(0.92 + rng() * 0.16);
     mesh.setColorAt(placed, color);
     placed++;
   }
