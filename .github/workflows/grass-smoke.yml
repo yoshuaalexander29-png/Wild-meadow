@@ -7,7 +7,7 @@ on:
     branches: [feat/threejs-controller-toon-rendering]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   grass-smoke:
@@ -27,6 +27,7 @@ jobs:
         run: node tests/asset-integration-smoke.cjs
 
   browser-preview:
+    if: github.event_name == 'pull_request' || !startsWith(github.event.head_commit.message, 'visual evidence:')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -39,6 +40,20 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Render desktop and mobile screenshots
         run: node tests/capture-grass-preview.cjs
+      - name: Commit genuine screenshots to the feature branch
+        if: success() && github.event_name == 'push' && !startsWith(github.event.head_commit.message, 'visual evidence:')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add screenshots/*.png screenshots/browser-report.json
+          if git diff --cached --quiet; then
+            echo "Screenshots are unchanged; no evidence commit needed."
+          else
+            git commit -m "visual evidence: capture cinematic and mobile views"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
       - name: Publish genuine browser captures
         if: always()
         uses: actions/upload-artifact@v4
