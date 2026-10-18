@@ -66,7 +66,7 @@ const server = http.createServer((req, res) => {
 
   try {
     const desktop = await openPage({ width: 1440, height: 900 });
-    await desktop.screenshot({ path: path.join(out, 'wild-meadow-desktop-cinematic.png'), fullPage: false });
+    await desktop.screenshot({ path: path.join(out, 'wild-meadow-desktop-cinematic.png'), fullPage: false, timeout: 60000 });
     report.screenshots.push('screenshots/wild-meadow-desktop-cinematic.png');
 
     await desktop.locator('#explore-toggle').click();
