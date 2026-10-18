@@ -17,6 +17,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Check inline game JavaScript syntax
+        run: node tests/check-inline-script-syntax.cjs
       - name: Test grass module construction and shader injection
         run: node tests/grass-system-smoke.cjs
       - name: Test existing controller and rendering integration
