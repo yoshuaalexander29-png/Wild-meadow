@@ -1,0 +1,23 @@
+name: Wild Meadow grass smoke tests
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [feat/threejs-controller-toon-rendering]
+
+permissions:
+  contents: read
+
+jobs:
+  grass-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Test grass module construction and shader injection
+        run: node tests/grass-system-smoke.cjs
+      - name: Test existing controller and rendering integration
+        run: node tests/threejs-adaptation-smoke.cjs
