@@ -25,7 +25,7 @@ for (const [label, needle] of [
   assert.ok((label === 'grass module imported by game' ? html : grassSource).includes(needle),
     'Missing integration: ' + label);
 }
-assert.match(grassSource, /import \\* as THREE from ['"]three\\/(?:webgpu|tsl)/, 'This test should guard against accidentally adding the upstream TSL/WebGPU imports');
+assert.doesNotMatch(grassSource, /from ['"]three\\/(?:webgpu|tsl)['"]/, 'The WebGL port must not import the upstream TSL/WebGPU path');
 assert.match(grassSource, /SPDX-License-Identifier: MIT/);
 assert.match(license, /Copyright \(c\) 2026 Matthew Kissinger/);
 assert.match(license, /threejs-field-grass/);
@@ -36,7 +36,7 @@ assert.match(license, /threejs-field-grass/);
 const smoke = `
 import assert from 'node:assert/strict';
 import { pathToFileURL } from 'node:url';
-const { createGrassSystem } = await import(pathToFileURL(process.argv[1]));
+const { createGrassSystem } = await import(process.argv[1]);
 class Vector3 { constructor(){this.x=0;this.y=0;this.z=0} set(x,y,z){this.x=x;this.y=y;this.z=z;return this} }
 class Vector4 { constructor(){this.x=0;this.y=0;this.z=0;this.w=0} set(x,y,z,w){this.x=x;this.y=y;this.z=z;this.w=w;return this} }
 class Color { set(value){this.value=value;return this} multiplyScalar(value){this.multiplier=value;return this} }
