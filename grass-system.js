@@ -95,7 +95,7 @@ export function createGrassSystem({
     roughness: 1,
     metalness: 0,
     side: THREE.DoubleSide,
-    vertexColors: false,
+    vertexColors: true,
   });
 
   const uniforms = {
