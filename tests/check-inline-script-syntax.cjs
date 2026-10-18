@@ -5,7 +5,7 @@ const { spawnSync } = require('node:child_process');
 const assert = require('node:assert/strict');
 
 const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
-const match = html.match(/<script type="module">([\\s\\S]*?)<\\/script>/);
+const match = html.match(/<script type="module">([\s\S]*?)<\/script>/);
 assert.ok(match, 'Could not find the main JavaScript module script in index.html');
 const temp = path.join(os.tmpdir(), 'wild-meadow-inline-check.mjs');
 fs.writeFileSync(temp, match[1]);
