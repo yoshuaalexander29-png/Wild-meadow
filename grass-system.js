@@ -123,8 +123,14 @@ float wmBroad = sin(dot(wmRoot.xz, vec2(0.76, 0.65)) * 0.16 - uGrassTime * 0.72)
 float wmMiddle = sin(dot(wmRoot.xz, vec2(-0.36, 0.93)) * 0.34 + uGrassTime * 1.13);
 float wmFine = sin(uGrassTime * 4.4 + wmRoot.x * 4.7 + wmRoot.z * 3.9);
 float wmWind = wmBroad * 0.58 + wmMiddle * 0.30 + wmFine * 0.12;
-transformed.x += wmTip * (wmWind * 0.17);
-transformed.z += wmTip * (wmWind * 0.13);
+vec2 wmWorldWind = vec2(wmWind * 0.17, wmWind * 0.13);
+float wmInstanceScaleSq = max(dot(instanceMatrix[0].xz, instanceMatrix[0].xz), 0.0001);
+vec2 wmLocalWind = vec2(
+  instanceMatrix[0][0] * wmWorldWind.x - instanceMatrix[2][0] * wmWorldWind.y,
+ -instanceMatrix[0][2] * wmWorldWind.x + instanceMatrix[2][2] * wmWorldWind.y
+) / wmInstanceScaleSq;
+transformed.x += wmTip * wmLocalWind.x;
+transformed.z += wmTip * wmLocalWind.y;
 vec2 wmPlayerDelta = wmRoot.xz - uPlayer.xy;
 float wmPlayerDistance = length(wmPlayerDelta);
 float wmPlayerInfluence = (1.0 - smoothstep(0.22, 1.65, wmPlayerDistance)) * uPlayer.z;
@@ -142,8 +148,12 @@ for (int wmI = 0; wmI < 10; wmI++) {
     wmBend += wmWakePush * wmWakeInfluence * 0.52;
   }
 }
-transformed.x += wmBend.x * wmTip;
-transformed.z += wmBend.y * wmTip;`,
+vec2 wmLocalBend = vec2(
+  instanceMatrix[0][0] * wmBend.x - instanceMatrix[2][0] * wmBend.y,
+ -instanceMatrix[0][2] * wmBend.x + instanceMatrix[2][2] * wmBend.y
+) / wmInstanceScaleSq;
+transformed.x += wmLocalBend.x * wmTip;
+transformed.z += wmLocalBend.y * wmTip;`,
     );
     material.userData.grassShader = shader;
   };
