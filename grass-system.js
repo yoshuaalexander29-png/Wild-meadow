@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 // WebGL-compatible adaptation of field-grass techniques.
 // Upstream reference: https://github.com/matthew-kissinger/threejs-field-grass
 // Upstream license: MIT, Copyright (c) 2026 Matthew Kissinger.
