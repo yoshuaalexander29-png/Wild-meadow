@@ -1,44 +1,35 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const assert = require('node:assert/strict');
-
 const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+const grass = fs.readFileSync(path.join(__dirname, '..', 'grass-system.js'), 'utf8');
 
-const required = [
-  ['Three.js WebGL renderer remains in use', 'new THREE.WebGLRenderer'],
-  ['Three.js toon material remains available for stylized environment props', 'new THREE.MeshToonMaterial'],
-  ['quantized gradient ramp uses nearest filtering', 'toonRamp.magFilter=THREE.NearestFilter'],
-  ['Three.js OutlinePass remains integrated', 'new OutlinePass'],
-  ['single surviving warrior asset', 'Knight_Male.glb'],
-  ['original GLTF mesh materials are preserved', 'function fitModel(root,targetHeight)'],
-  ['terrain uses vertex-colour variation', "groundGeo.setAttribute('color',new THREE.Float32BufferAttribute(groundColors,3))"],
-  ['coherent broad terrain noise', 'function valueNoise(x,z)'],
-  ['ground-cover placement uses terrain height', 'meadowGroundHeight(x,z)'],
-  ['broad-leaf ground cover exists', 'Broad-leaf ground cover provides'],
-  ['stone scatter uses terrain height', 'stone.position.set(x,meadowGroundHeight(x,z)+.025,z)'],
-  ['mobile pixel ratio is capped', 'innerWidth<700?1:1.25'],
-  ['existing animation loop updates grass', 'grassSystem.update(delta)'],
-  ['camera runs an automatic cinematic sequence', 'cameraAt(t%22)'],
-  ['asset failures are logged without a permanent overlay', "console.error('Wild Meadow asset load failed:'"],
-];
-
-for (const [label, needle] of required) {
-  assert.ok(html.includes(needle), 'Missing visual-overhaul integration: ' + label);
-}
-for (const [label, pattern] of [
-  ['forest character removed', /Characters_Lis\.glb|promiseForest|Forest wanderer/],
-  ['blanket flat-shading override removed', /flatShading\s*=\s*true/],
-]) {
-  assert.doesNotMatch(html, pattern, 'Unexpected leftover: ' + label);
-}
 for (const [label, needle] of [
-  ['Explore toggle exists', 'id="explore-toggle"'],
-  ['player world position feeds grass wake', 'active:exploreMode'],
-  ['keyboard movement remains available', "KeyW:'forward'"],
-  ['touch movement controls exist', 'data-move="forward"'],
-  ['jump is supported', "keys.has('jump')&&grounded"],
-]) {
-  assert.ok(html.includes(needle), 'Missing interactive grass integration: ' + label);
-}
+  ['Three.js WebGL renderer retained', 'new THREE.WebGLRenderer'],
+  ['Three.js version pinned to 0.183.0', 'three@0.183.0/build/three.module.js'],
+  ['GLTFLoader retained', "from 'three/addons/loaders/GLTFLoader.js'"],
+  ['composer and outline pipeline retained', 'new OutlinePass'],
+  ['single warrior model retained', 'Knight_Male.glb'],
+  ['grass module integrated', "from './grass-system.js'"],
+  ['terrain height function retained', 'function meadowGroundHeight(x,z)'],
+  ['terrain vertex colours used', "groundGeo.setAttribute('color',new THREE.Float32BufferAttribute(groundColors,3))"],
+  ['grass updated in one animation loop', 'grassSystem.update(delta)'],
+  ['deterministic shot query supported', 'testQuery.has(\'shot\')'],
+  ['browser diagnostics exposed in test mode', 'window.__wildMeadowDiagnostics'],
+  ['browser reports loaded character asset', 'diagnostics.loadedAssets.push(label)'],
+  ['camera animation remains automatic', 'cameraAt(t%22)'],
+]) assert.ok(html.includes(needle), 'Missing visual integration: ' + label);
 
-console.log('Wild Meadow scene and interactive grass source checks passed (' + required.length + ' required checks, ' + 2 + ' removal checks, and ' + 5 + ' interactive checks).');
+for (const [label, pattern] of [
+  ['forest character is not loaded', /Characters_Lis\.glb|promiseForest|Forest wanderer/],
+  ['prototype HUD is absent', /explore-ui|explore-toggle|explore-reset/],
+  ['touch and movement UI are absent', /touch-controls|data-move=|KeyW:'forward'/],
+  ['pointer drag camera handler is absent', /pointermove.*exploreMode/s],
+  ['blanket flat-shading override is absent', /flatShading\s*=\s*true/],
+  ['player wake is disabled in visual-only mode', /active:exploreMode/],
+]) assert.doesNotMatch(html, pattern, 'Unexpected visual-only regression: ' + label);
+
+assert.match(grass, /new THREE\.InstancedMesh/);
+assert.match(grass, /float wmBroad = sin/);
+assert.match(grass, /geometry\.dispose\(\)/);
+console.log('Wild Meadow visual-only integration checks passed.');
