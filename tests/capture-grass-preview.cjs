@@ -54,7 +54,7 @@ const server = http.createServer((req, res) => {
     assert.equal(diag.grassReady, true, 'grass system must initialize');
     assert.ok((assetStatuses.grass || 0) === 200, 'grass module must load with HTTP 200');
     assert.ok((assetStatuses.warrior || 0) === 200, 'warrior GLB must load with HTTP 200');
-    assert.ok(diag.loadedAssets.includes('warrior'), 'warrior GLB must finish loading');
+    assert.ok(diag.loadedAssets.includes('Silverland knight'), 'warrior GLB must finish loading');
     assert.equal(await page.locator('#explore-ui').count(), 0, 'visual-only scene must not expose prototype UI');
     const screenshot = `screenshots/${label}.png`;
     await page.screenshot({ path: path.join(root, screenshot), fullPage: false, timeout: 60000 });
