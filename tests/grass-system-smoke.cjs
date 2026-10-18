@@ -24,8 +24,9 @@ for (const [label, needle] of [
 for (const [label, needle] of [
   ['shared terrain height function', 'function meadowGroundHeight(x,z)'],
   ['grass uses terrain height', 'getGroundHeight:meadowGroundHeight'],
-  ['grass uses current player world position', 'x:hero.root.position.x,z:hero.root.position.z'],
+  ['grass interaction disabled for visual-only showcase', 'getPlayerState:()=>null'],
   ['grass updates in existing frame loop', 'grassSystem.update(delta)'],
+  ['instance colors are enabled in the material', 'vertexColors: true'],
 ]) {
   assert.ok(html.includes(needle), 'Missing game integration: ' + label);
 }
