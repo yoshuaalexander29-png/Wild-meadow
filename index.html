@@ -1,21 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"><meta name="theme-color" content="#b9d7b5"><title>Wild Meadow — Fantasy Meadow</title>
-<style>:root{color-scheme:light;background:#b9d8e2}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#b9d8e2}#stage{position:fixed;inset:0}canvas{display:block;width:100%;height:100%;touch-action:pan-x pan-y}#error{display:none}</style><style>
-#explore-ui{position:fixed;top:max(10px,env(safe-area-inset-top));right:10px;z-index:5;display:flex;gap:6px}
-#explore-ui button{border:1px solid #ffffff65;border-radius:11px;background:#17372edb;color:#f8f3e3;font:700 12px system-ui;padding:10px 14px;min-height:40px;backdrop-filter:blur(12px);cursor:pointer}
-#explore-ui button:focus-visible,#touch-controls button:focus-visible{outline:3px solid #e7cf8a;outline-offset:2px}
-#touch-controls{display:none;position:fixed;left:14px;right:14px;bottom:max(18px,env(safe-area-inset-bottom));z-index:5;align-items:end;justify-content:space-between;pointer-events:none}
-#touch-controls button{pointer-events:auto;touch-action:none;width:43px;height:43px;min-height:43px;padding:0;border-radius:13px;background:#17372edb;border:1px solid #f4e8c56b;color:#f8f3e3;font:700 18px system-ui}
-#touch-controls .touch-pad>button{display:block;margin:0 auto 5px}
-#touch-controls .touch-pad>div{display:flex;gap:5px}
-#touch-controls .touch-jump{width:62px;height:62px;border-radius:50%;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
-body.exploring #touch-controls{display:flex}
-@media(max-width:620px){#explore-ui{top:max(8px,env(safe-area-inset-top));right:8px;gap:4px}#explore-ui button{font-size:10px;padding:8px 9px;min-height:36px}#touch-controls{left:10px;right:10px;bottom:max(12px,env(safe-area-inset-bottom))}}
-</style></head><body><div id="stage"></div><div id="error"></div>
-<div id="explore-ui"><button id="explore-toggle" aria-pressed="false">Explore</button><button id="explore-reset">Restart</button></div>
-<div id="touch-controls" aria-label="Movement controls">
-<div class="touch-pad"><button data-move="forward" aria-label="Move forward">↑</button><div><button data-move="left" aria-label="Move left">←</button><button data-move="backward" aria-label="Move backward">↓</button><button data-move="right" aria-label="Move right">→</button></div></div>
-<button data-move="jump" class="touch-jump" aria-label="Jump">Jump</button></div>
+<style>:root{color-scheme:light;background:#b9d8e2}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#b9d8e2}#stage{position:fixed;inset:0}canvas{display:block;width:100%;height:100%;touch-action:pan-x pan-y}#error{display:none}</style></head><body><div id="stage"></div><div id="error"></div>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.183.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.183.0/examples/jsm/"}}</script>
 <script type="module">
 import * as THREE from 'three';
@@ -24,7 +9,11 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { OutlinePass } from 'three/addons/postprocessing/OutlinePass.js';
-const stage=document.querySelector('#stage'),errorBox=document.querySelector('#error');
+const stage=document.querySelector('#stage');
+const testQuery=new URLSearchParams(location.search),fixedShot=testQuery.has('shot'),requestedShot=fixedShot?THREE.MathUtils.clamp(Number(testQuery.get('shot'))||0,0,21.99):null;
+const diagnostics=testQuery.has('test')?(window.__wildMeadowDiagnostics={threeRevision:THREE.REVISION,renderer:'WebGLRenderer',loadedAssets:[],errors:[],frames:0,grassReady:false,shaderErrors:[]}):null;
+if(diagnostics){rendererDebugHook();}
+function rendererDebugHook(){}
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.25));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.0;stage.appendChild(renderer.domElement);
 const scene=new THREE.Scene();scene.background=new THREE.Color('#b9d8e2');scene.fog=new THREE.Fog('#b9d8e2',34,96);
 const camera=new THREE.PerspectiveCamera(43,innerWidth/innerHeight,.1,120);camera.position.set(0,5.4,15.8);
@@ -59,7 +48,7 @@ for(let i=0;i<34;i++){let z=-5-rnd()*26,x=(rnd()-.5)*29;if(Math.abs(x)<3.4&&z>-9
 // Instanced, curved multi-blade tufts with shader wind and a bounded player wake.
 const grassSystem=createGrassSystem({
  THREE,scene,getGroundHeight:meadowGroundHeight,
- getPlayerState:()=>{const hero=loaded[0];return hero?{x:hero.root.position.x,z:hero.root.position.z,heading:hero.root.rotation.y,active:exploreMode}:null},
+ getPlayerState:()=>null,
  isExcluded:(x,z)=>{
   if(Math.abs(x)<2.65&&z>-8&&z<1.4)return true;
   if((x+1.7)**2+(z+1.3)**2<1.15**2||(x-1.55)**2+(z+1.5)**2<1.15**2)return true;
@@ -67,6 +56,7 @@ const grassSystem=createGrassSystem({
  },
  quality:innerWidth<700?'low':'medium'
 });
+if(diagnostics)diagnostics.grassReady=true;
 // Flower patches create colour groupings rather than uniform noise.
 const flowerColors=['#f0d78a','#e5a7a2','#f7efda','#a9c8dd','#e7b86b'];
 for(let patch=0;patch<28;patch++){const cx=(rnd()-.5)*29,cz=2-rnd()*28;if(Math.abs(cx)<2.5&&cz>-5)continue;for(let i=0,n=5+Math.floor(rnd()*8);i<n;i++){const x=cx+(rnd()-.5)*2.1,z=cz+(rnd()-.5)*2.1,y=meadowGroundHeight(x,z),stem=new THREE.Mesh(new THREE.CylinderGeometry(.009,.014,.19,4),mat('#47794b'));stem.position.set(x,y+.095,z);scene.add(stem);const flower=new THREE.Mesh(new THREE.IcosahedronGeometry(.062+rnd()*.025,1),mat(flowerColors[patch%flowerColors.length]));flower.scale.set(1,.52,1);flower.position.set(x,y+.205,z);scene.add(flower)}}
@@ -78,7 +68,7 @@ const stoneMaterials=['#a9ad9b','#b8b29c','#8f9c91'].map(c=>new THREE.MeshStanda
 for(let i=0;i<34;i++){const x=(rnd()-.5)*30,z=1-rnd()*26;if(Math.abs(x)<2.4&&z>-5)continue;const stone=new THREE.Mesh(new THREE.IcosahedronGeometry(.12+rnd()*.19,1),stoneMaterials[i%stoneMaterials.length]);stone.position.set(x,meadowGroundHeight(x,z)+.025,z);stone.scale.set(1.2,.55,.8);stone.rotation.y=rnd()*Math.PI;scene.add(stone)}
 // Contact shadows are soft translucent discs, kept separate from model meshes.
 function shadow(x,z,sx,sz){const m=new THREE.Mesh(new THREE.CircleGeometry(1,24),new THREE.MeshBasicMaterial({color:'#26372a',transparent:true,opacity:.22,depthWrite:false}));m.rotation.x=-Math.PI/2;m.position.set(x,.008,z);m.scale.set(sx,sz,1);scene.add(m);return m}shadow(-1.65,-1.3,.8,.45);shadow(1.6,-1.4,.65,.4);
-const loader=new GLTFLoader();const loaded=[];let loadCount=0;function showError(label,e){console.error('Wild Meadow asset load failed:',label,e);errorBox.style.display='none'}
+const loader=new GLTFLoader();const loaded=[];let loadCount=0;function showError(label,e){console.error('Wild Meadow asset load failed:',label,e);if(diagnostics)diagnostics.errors.push({label,message:String(e)});}
 // Adapted from ZaneAtega's GLSL anime-shader reference: add a restrained Fresnel rim to existing GLTF materials
 // without replacing their maps, skinning, or animation-compatible standard-material pipeline.
 function addAnimeRim(material){
@@ -95,67 +85,31 @@ function addAnimeRim(material){
  material.needsUpdate=true;
 }
 function fitModel(root,targetHeight){const box=new THREE.Box3().setFromObject(root),size=box.getSize(new THREE.Vector3()),center=box.getCenter(new THREE.Vector3());if(!Number.isFinite(size.y)||size.y<.01)throw new Error('Model has no measurable geometry');root.position.x-=center.x;root.position.z-=center.z;root.position.y-=box.min.y;root.scale.multiplyScalar(targetHeight/size.y);root.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});}
-function loadCharacter(url,label,x,z,targetHeight,rotation=0){return new Promise((resolve,reject)=>loader.load(url,gltf=>{const root=gltf.scene;try{fitModel(root,targetHeight);root.position.x+=x;root.position.z+=z;root.position.y+=meadowGroundHeight(root.position.x,root.position.z);root.rotation.y=rotation;scene.add(root);let mixer=null;if(gltf.animations?.length){mixer=new THREE.AnimationMixer(root);const clip=gltf.animations.find(c=>/idle|stand/i.test(c.name))||gltf.animations[0];mixer.clipAction(clip).play()}loaded.push({root,mixer,clips:gltf.animations||[],label});outlinePass.selectedObjects=[root];resolve(root)}catch(e){reject(e)}},undefined,reject))}
+function loadCharacter(url,label,x,z,targetHeight,rotation=0){return new Promise((resolve,reject)=>loader.load(url,gltf=>{const root=gltf.scene;try{fitModel(root,targetHeight);root.position.x+=x;root.position.z+=z;root.position.y+=meadowGroundHeight(root.position.x,root.position.z);root.rotation.y=rotation;scene.add(root);let mixer=null;if(gltf.animations?.length){mixer=new THREE.AnimationMixer(root);const clip=gltf.animations.find(c=>/idle|stand/i.test(c.name))||gltf.animations[0];mixer.clipAction(clip).play()}loaded.push({root,mixer,clips:gltf.animations||[],label});outlinePass.selectedObjects=[root];if(diagnostics)diagnostics.loadedAssets.push(label);resolve(root)}catch(e){reject(e)}},undefined,reject))}
 const ASSETS={warrior:'https://cdn.cinevva.com/assets/packs/quaternius/ultimate-animated-characters/Knight_Male.glb?download=1',sword:'https://cdn.cinevva.com/assets/packs/quaternius/cube-world/Sword_Gold.glb?download=1'};
 const promiseWarrior=loadCharacter(ASSETS.warrior,'Silverland knight',0,-1.8,2.12,0).catch(e=>showError('Warrior (Quaternius Knight_Male.glb)',e));
 loader.load(ASSETS.sword,gltf=>{const weapon=gltf.scene,box=new THREE.Box3().setFromObject(weapon),size=box.getSize(new THREE.Vector3()),x=.95,z=-1.25,y=meadowGroundHeight(x,z);weapon.position.set(x,y+.035,z);weapon.scale.setScalar(.72/Math.max(size.y,.01));weapon.rotation.set(0,0,-Math.PI/2);weapon.traverse(o=>{if(o.isMesh)o.castShadow=false});scene.add(weapon)},undefined,e=>console.warn('Optional sword prop unavailable:',e));
 const shots=[{t:0,p:[0,6.4,18],look:[0,1,-8],f:47},{t:5,p:[-5.4,3.8,8.8],look:[0,1,-3],f:40},{t:10,p:[4.6,3,6.6],look:[0,1.1,-2],f:36},{t:15,p:[1.2,2.5,4.9],look:[0,1.2,-1.8],f:34},{t:22,p:[-1.5,4.9,11],look:[0,1,-5],f:43}];
-let start=performance.now(),exploreMode=false,exploreYaw=0,jumpVelocity=0,jumpHeight=0,grounded=true,dragging=false,lastPointerX=0;
-const keys=new Set();
-const moveCodes={KeyW:'forward',ArrowUp:'forward',KeyS:'backward',ArrowDown:'backward',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right',ShiftLeft:'sprint',ShiftRight:'sprint',Space:'jump'};
-addEventListener('keydown',e=>{if(moveCodes[e.code]){keys.add(moveCodes[e.code]);if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault()}});
-addEventListener('keyup',e=>{if(moveCodes[e.code])keys.delete(moveCodes[e.code])});
-addEventListener('blur',()=>keys.clear());
-document.querySelectorAll('[data-move]').forEach(button=>{
- const key=button.dataset.move;
- const down=e=>{e.preventDefault();keys.add(key);button.setPointerCapture?.(e.pointerId)};
- const up=e=>{e.preventDefault();keys.delete(key)};
- button.addEventListener('pointerdown',down);button.addEventListener('pointerup',up);button.addEventListener('pointercancel',up);button.addEventListener('lostpointercapture',()=>keys.delete(key));
-});
-function setExplore(enabled){
- exploreMode=enabled;document.body.classList.toggle('exploring',enabled);keys.clear();
- const button=document.querySelector('#explore-toggle');button.textContent=enabled?'Cinematic':'Explore';button.setAttribute('aria-pressed',String(enabled));
- if(enabled){const hero=loaded[0];if(hero){exploreYaw=hero.root.rotation.y;const y=meadowGroundHeight(hero.root.position.x,hero.root.position.z);camera.position.set(hero.root.position.x+Math.sin(exploreYaw)*4.8,y+2.8,hero.root.position.z+Math.cos(exploreYaw)*4.8);camera.lookAt(hero.root.position.x,y+1,hero.root.position.z)}}
- else {start=performance.now();jumpVelocity=0;jumpHeight=0;grounded=true}
-}
-document.querySelector('#explore-toggle').addEventListener('click',()=>setExplore(!exploreMode));
-document.querySelector('#explore-reset').addEventListener('click',()=>{setExplore(false);start=performance.now()});
-renderer.domElement.addEventListener('pointerdown',e=>{dragging=true;lastPointerX=e.clientX;renderer.domElement.setPointerCapture(e.pointerId)});
-renderer.domElement.addEventListener('pointermove',e=>{if(dragging&&exploreMode){exploreYaw-=(e.clientX-lastPointerX)*.005}lastPointerX=e.clientX});
-renderer.domElement.addEventListener('pointerup',()=>dragging=false);
-renderer.domElement.addEventListener('pointercancel',()=>dragging=false);
+let start=performance.now();
 const clock=new THREE.Clock();
 function ease(v){return v*v*(3-2*v)}
 function cameraAt(t){let i=0;while(i<shots.length-2&&t>shots[i+1].t)i++;const a=shots[i],b=shots[i+1],u=ease(THREE.MathUtils.clamp((t-a.t)/(b.t-a.t),0,1));return {p:a.p.map((v,j)=>THREE.MathUtils.lerp(v,b.p[j],u)),look:a.look.map((v,j)=>THREE.MathUtils.lerp(v,b.look[j],u)),f:THREE.MathUtils.lerp(a.f,b.f,u)}}
 function frame(now){
  requestAnimationFrame(frame);
- const t=Math.max(0,(now-start)/1000),delta=Math.min(clock.getDelta(),.05);
- for(const c of loaded)if(c.mixer)c.mixer.update(delta);
- const hero=loaded[0];
- if(exploreMode&&hero){
-  const forward=(keys.has('forward')?1:0)-(keys.has('backward')?1:0),strafe=(keys.has('right')?1:0)-(keys.has('left')?1:0);
-  const moving=forward!==0||strafe!==0,speed=keys.has('sprint')?5.2:3.0,len=Math.hypot(forward,strafe)||1;
-  const dx=(Math.sin(exploreYaw)*forward+Math.cos(exploreYaw)*strafe)/len*speed*delta;
-  const dz=(-Math.cos(exploreYaw)*forward+Math.sin(exploreYaw)*strafe)/len*speed*delta;
-  let nx=THREE.MathUtils.clamp(hero.root.position.x+dx,-15,15),nz=THREE.MathUtils.clamp(hero.root.position.z+dz,-27,7);
-  for(const obstacle of treeCollision){const ox=nx-obstacle.x,oz=nz-obstacle.z,d=Math.hypot(ox,oz),min=obstacle.radius+.38;if(d<min&&d>.0001){nx=obstacle.x+ox/d*min;nz=obstacle.z+oz/d*min}}
-  if(keys.has('jump')&&grounded){jumpVelocity=4.2;grounded=false}
-  if(!grounded){jumpVelocity-=10.5*delta;jumpHeight+=jumpVelocity*delta;if(jumpHeight<=0){jumpHeight=0;jumpVelocity=0;grounded=true}}
-  hero.root.position.x=nx;hero.root.position.z=nz;hero.root.position.y=meadowGroundHeight(nx,nz)+jumpHeight;
-  if(moving)hero.root.rotation.y=Math.atan2(dx,-dz);
-  const baseY=meadowGroundHeight(nx,nz)+jumpHeight;
-  const desired=new THREE.Vector3(nx+Math.sin(exploreYaw)*4.8,baseY+2.8,nz+Math.cos(exploreYaw)*4.8);
-  camera.position.lerp(desired,1-Math.exp(-5*delta));camera.lookAt(nx,baseY+1.05,nz);
- }else{
-  const sh=cameraAt(t%22);camera.fov=sh.f;camera.position.set(...sh.p);camera.lookAt(...sh.look);
- }
+ const elapsed=Math.max(0,(now-start)/1000),t=fixedShot?requestedShot:elapsed%22,delta=Math.min(clock.getDelta(),.05);
+ for(const character of loaded)if(character.mixer)character.mixer.update(delta);
+ const sh=cameraAt(t%22);
+ camera.fov=sh.f;camera.position.set(...sh.p);camera.lookAt(...sh.look);
  grassSystem.update(delta);
  camera.updateProjectionMatrix();
+ if(diagnostics)diagnostics.frames++;
  if(innerWidth>=700)composer.render();else renderer.render(scene,camera);
 }
 function resize(){renderer.setPixelRatio(Math.min(devicePixelRatio||1,innerWidth<700?1:1.25));renderer.setSize(innerWidth,innerHeight);composer.setPixelRatio(Math.min(devicePixelRatio||1,1.25));composer.setSize(innerWidth,innerHeight);outlinePass.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()}
 addEventListener('resize',resize,{passive:true});
 renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();console.error('Wild Meadow WebGL context lost; reload to recover.')},{passive:false});
 Promise.resolve(promiseWarrior).catch(e=>console.error(e));
+Promise.resolve(promiseWarrior).finally(()=>{if(diagnostics)diagnostics.ready=true;}).catch(()=>{});
+if(diagnostics){const originalError=console.error.bind(console);console.error=(...args)=>{diagnostics.errors.push({label:'console.error',message:args.map(String).join(' ')});originalError(...args)};}
 requestAnimationFrame(frame);
 </script></body></html>
