@@ -1,5 +1,9 @@
 {
-  "url": "http://127.0.0.1:34487/index.html",
+  "sourceCommit": "1eb0b9ef3ac19e19d53640fa29ee7d5e89f34c6a",
+  "workflowRunId": "39142217538",
+  "capturedAt": "2026-10-18T15:49:59.237Z",
+  "browserVersion": "156.0.8078.4",
+  "url": "http://127.0.0.1:33105/index.html",
   "screenshots": [
     "screenshots/wild-meadow-establishing-desktop.png",
     "screenshots/wild-meadow-midland-desktop.png",
@@ -21,7 +25,7 @@
           "Silverland knight"
         ],
         "errors": [],
-        "frames": 41,
+        "frames": 42,
         "grassReady": true,
         "ready": true
       },
@@ -45,7 +49,7 @@
           "Silverland knight"
         ],
         "errors": [],
-        "frames": 56,
+        "frames": 51,
         "grassReady": true,
         "ready": true
       },
@@ -69,7 +73,7 @@
           "Silverland knight"
         ],
         "errors": [],
-        "frames": 56,
+        "frames": 50,
         "grassReady": true,
         "ready": true
       },
@@ -93,7 +97,7 @@
           "Silverland knight"
         ],
         "errors": [],
-        "frames": 71,
+        "frames": 62,
         "grassReady": true,
         "ready": true
       },
