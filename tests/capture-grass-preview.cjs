@@ -47,7 +47,7 @@ const server = http.createServer((req, res) => {
     await page.waitForFunction(() => {
       const status = document.querySelector('#status')?.textContent || '';
       return status.includes('Both external CC0 GLB characters loaded') || !!document.querySelector('#error')?.textContent;
-    }, { timeout: 45000 });
+    }, undefined, { timeout: 45000 });
     report.characterStatus = await page.locator('#status').innerText();
     assert.equal(await page.locator('#error').isVisible(), false, 'The page displayed its asset/runtime error UI');
     assert.equal(report.grassModuleStatus, 200, 'grass-system.js must be served successfully');
