@@ -1,5 +1,7 @@
 # WILD MEADOW — Real Rendering / Screenshot Recovery Guide
 
+> **Important:** the screenshots documented below are from the previous build. They are not visual evidence for the current visual-only overhaul branch; fresh captures must be generated from the current source before making visual acceptance claims.
+
 This guide separates **real pixel rendering** from the existing mock-WebGL smoke test. The mock test does not prove that shaders compile or that pixels are rendered.
 
 ## Current evidence (2026-10-18)

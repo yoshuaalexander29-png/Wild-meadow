@@ -1,6 +1,8 @@
 # WILD MEADOW — Visual Review
 
-## Genuine rendered captures
+> **Evidence scope:** the captures below are baseline captures from an earlier build, not the current visual-only overhaul branch. Do not use them to claim that the new ground, character cleanup, or HUD removal has been visually verified.
+
+## Baseline rendered captures
 
 Six PNG captures are included under `evidence/` at 1280×800, labelled 0, 4, 8, 12, 16 and 20 seconds. `evidence/contact-sheet.png` is a convenience overview of those six captures. The captures show actual scene pixels, not concept art or mock-WebGL output.
 

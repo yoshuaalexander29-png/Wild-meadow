@@ -1,0 +1,115 @@
+{
+  "sourceCommit": "b2470fc817f0a232643032bc427ebd28a2b616bb",
+  "workflowRunId": "39143273198",
+  "capturedAt": "2026-10-18T16:04:04.266Z",
+  "browserVersion": "156.0.8078.4",
+  "url": "http://127.0.0.1:40351/index.html",
+  "screenshots": [
+    "screenshots/wild-meadow-establishing-desktop.png",
+    "screenshots/wild-meadow-midland-desktop.png",
+    "screenshots/wild-meadow-character-desktop.png",
+    "screenshots/wild-meadow-mobile.png"
+  ],
+  "views": [
+    {
+      "label": "wild-meadow-establishing-desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "shot": 0,
+      "diagnostics": {
+        "threeRevision": "183",
+        "renderer": "WebGLRenderer",
+        "loadedAssets": [
+          "Silverland knight"
+        ],
+        "errors": [],
+        "frames": 40,
+        "grassReady": true,
+        "ready": true
+      },
+      "assetStatuses": {
+        "grass": 200,
+        "warrior": 200
+      },
+      "pageErrors": []
+    },
+    {
+      "label": "wild-meadow-midland-desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "shot": 6.5,
+      "diagnostics": {
+        "threeRevision": "183",
+        "renderer": "WebGLRenderer",
+        "loadedAssets": [
+          "Silverland knight"
+        ],
+        "errors": [],
+        "frames": 53,
+        "grassReady": true,
+        "ready": true
+      },
+      "assetStatuses": {
+        "grass": 200,
+        "warrior": 200
+      },
+      "pageErrors": []
+    },
+    {
+      "label": "wild-meadow-character-desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "shot": 15.5,
+      "diagnostics": {
+        "threeRevision": "183",
+        "renderer": "WebGLRenderer",
+        "loadedAssets": [
+          "Silverland knight"
+        ],
+        "errors": [],
+        "frames": 45,
+        "grassReady": true,
+        "ready": true
+      },
+      "assetStatuses": {
+        "grass": 200,
+        "warrior": 200
+      },
+      "pageErrors": []
+    },
+    {
+      "label": "wild-meadow-mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "shot": 0,
+      "diagnostics": {
+        "threeRevision": "183",
+        "renderer": "WebGLRenderer",
+        "loadedAssets": [
+          "Silverland knight"
+        ],
+        "errors": [],
+        "frames": 65,
+        "grassReady": true,
+        "ready": true
+      },
+      "assetStatuses": {
+        "grass": 200,
+        "warrior": 200
+      },
+      "pageErrors": []
+    }
+  ],
+  "pageErrors": [],
+  "consoleErrors": [],
+  "shaderErrors": [],
+  "failedRequests": []
+}
