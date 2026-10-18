@@ -14,8 +14,8 @@ const required = [
   ['terrain uses vertex-colour variation', "groundGeo.setAttribute('color',new THREE.Float32BufferAttribute(groundColors,3))"],
   ['coherent broad terrain noise', 'function valueNoise(x,z)'],
   ['ground-cover placement uses terrain height', 'meadowGroundHeight(x,z)'],
-  ['broad-leaf ground cover exists', 'Low broad-leaf ground cover'],
-  ['stone scatter uses terrain height', 'Small, non-repeating stones'],
+  ['broad-leaf ground cover exists', 'Broad-leaf ground cover provides'],
+  ['stone scatter uses terrain height', 'stone.position.set(x,meadowGroundHeight(x,z)+.025,z)'],
   ['mobile pixel ratio is capped', 'innerWidth<700?1:1.25'],
   ['existing animation loop updates grass', 'grassSystem.update(delta)'],
   ['camera runs an automatic cinematic sequence', 'cameraAt(t%22)'],
@@ -27,11 +27,18 @@ for (const [label, needle] of required) {
 }
 for (const [label, pattern] of [
   ['forest character removed', /Characters_Lis\.glb|promiseForest|Forest wanderer/],
-  ['movement and HUD controls removed', /data-move|id="explore"|id="reset"|id="motion"|id="cycle"|id="hud"|id="caption"|id="touch-controls"/],
   ['blanket flat-shading override removed', /flatShading\s*=\s*true/],
-  ['obsolete interactive controller removed', /function setExplore|KeyW|keys\.has\('sprint'\)/],
 ]) {
   assert.doesNotMatch(html, pattern, 'Unexpected leftover: ' + label);
 }
+for (const [label, needle] of [
+  ['Explore toggle exists', 'id="explore-toggle"'],
+  ['player world position feeds grass wake', 'active:exploreMode'],
+  ['keyboard movement remains available', "KeyW:'forward'"],
+  ['touch movement controls exist', 'data-move="forward"'],
+  ['jump is supported', "keys.has('jump')&&grounded"],
+]) {
+  assert.ok(html.includes(needle), 'Missing interactive grass integration: ' + label);
+}
 
-console.log('Wild Meadow visual-overhaul source checks passed (' + required.length + ' required checks and ' + 4 + ' removal checks).');
+console.log('Wild Meadow scene and interactive grass source checks passed (' + required.length + ' required checks, ' + 2 + ' removal checks, and ' + 5 + ' interactive checks).');
