@@ -55,4 +55,4 @@ const server = http.createServer((req, res) => {
     await browser.close();
     await new Promise(resolve => server.close(resolve));
   }
-})().catch(error => { console.error(error.stack || String(error)); process.exitCode = 1; });
+})().catch(error => { console.error('Browser capture failed:', error.stack || String(error)); process.exitCode = 1; });
