@@ -53,9 +53,10 @@ class Color { set(value){this.value=value;return this} multiplyScalar(value){thi
 class Float32BufferAttribute { constructor(array,itemSize){this.array=array;this.itemSize=itemSize} }
 class BufferGeometry { setAttribute(k,v){this[k]=v} setIndex(v){this.index=v} computeVertexNormals(){} dispose(){this.disposed=true} }
 class MeshStandardMaterial { constructor(options){Object.assign(this,options);this.userData={}} dispose(){this.disposed=true} }
+class MeshBasicMaterial extends MeshStandardMaterial {}
 class Object3D { constructor(){this.position={set(){}};this.rotation={set(){}};this.scale={set(){}};this.matrix={};} updateMatrix(){} }
 class InstancedMesh { constructor(geometry,material,count){this.geometry=geometry;this.material=material;this.count=count;this.instanceMatrix={};this.instanceColor=null;this.userData={};} setMatrixAt(){} setColorAt(i,c){this.instanceColor ||= {needsUpdate:false};} computeBoundingSphere(){} removeFromParent(){this.removed=true} }
-const THREE={Vector3,Vector4,Color,Float32BufferAttribute,BufferGeometry,MeshStandardMaterial,Object3D,InstancedMesh,DoubleSide:2};
+const THREE={Vector3,Vector4,Color,Float32BufferAttribute,BufferGeometry,MeshStandardMaterial,MeshBasicMaterial,Object3D,InstancedMesh,DoubleSide:2};
 const scene={children:[],add(x){this.children.push(x)},};
 let player={x:0,z:0,heading:0,active:true};
 const grass=createGrassSystem({THREE,scene,getGroundHeight:(x,z)=>Math.sin(x*.1+z*.2)*.1,getPlayerState:()=>player,isExcluded:()=>false,quality:'low'});
