@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"><meta name="theme-color" content="#b9d7b5"><title>Wild Meadow — Fantasy Meadow</title>
-<style>:root{color-scheme:light;background:#b9d8e2}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#b9d8e2}#stage{position:fixed;inset:0}canvas{display:block;width:100%;height:100%;touch-action:pan-x pan-y}#error{display:none}</style></head><body><div id="stage"></div><div id="error"></div>
+<style>:root{color-scheme:light;background:#b9d8e2}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#b9d8e2}#stage{position:fixed;inset:0}canvas{display:block;width:100%;height:100%;touch-action:pan-x pan-y}</style></head><body><div id="stage"></div>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.183.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.183.0/examples/jsm/"}}</script>
 <script type="module">
 import * as THREE from 'three';
@@ -11,9 +11,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { OutlinePass } from 'three/addons/postprocessing/OutlinePass.js';
 const stage=document.querySelector('#stage');
 const testQuery=new URLSearchParams(location.search),fixedShot=testQuery.has('shot'),requestedShot=fixedShot?THREE.MathUtils.clamp(Number(testQuery.get('shot'))||0,0,21.99):null;
-const diagnostics=testQuery.has('test')?(window.__wildMeadowDiagnostics={threeRevision:THREE.REVISION,renderer:'WebGLRenderer',loadedAssets:[],errors:[],frames:0,grassReady:false,shaderErrors:[]}):null;
-if(diagnostics){rendererDebugHook();}
-function rendererDebugHook(){}
+const diagnostics=testQuery.has('test')?(window.__wildMeadowDiagnostics={threeRevision:THREE.REVISION,renderer:'WebGLRenderer',loadedAssets:[],errors:[],frames:0,grassReady:false}):null;
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.25));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.0;stage.appendChild(renderer.domElement);
 const scene=new THREE.Scene();scene.background=new THREE.Color('#b9d8e2');scene.fog=new THREE.Fog('#b9d8e2',34,96);
 const camera=new THREE.PerspectiveCamera(43,innerWidth/innerHeight,.1,120);camera.position.set(0,5.4,15.8);
