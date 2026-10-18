@@ -25,7 +25,7 @@ for (const [label, needle] of [
   assert.ok((label === 'grass module imported by game' ? html : grassSource).includes(needle),
     'Missing integration: ' + label);
 }
-assert.doesNotMatch(grassSource, /from ['"]three\\/(?:webgpu|tsl)['"]/, 'The WebGL port must not import the upstream TSL/WebGPU path');
+assert.doesNotMatch(grassSource, /from ['"]three\/(?:webgpu|tsl)['"]/, 'The WebGL port must not import the upstream TSL/WebGPU path');
 assert.match(grassSource, /SPDX-License-Identifier: MIT/);
 assert.match(license, /Copyright \(c\) 2026 Matthew Kissinger/);
 assert.match(license, /threejs-field-grass/);
