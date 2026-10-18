@@ -1,6 +1,6 @@
 # WILD MEADOW — asset-backed WebGL build
 
-The main `index.html` loads two existing CC0 GLB character assets and a CC0 sword model. The environment remains original procedural scenery. The source assets are attributed in `ASSET_MANIFEST.md`.
+The main `index.html` loads one CC0 Quaternius warrior GLB over an original procedural meadow. The previously staged second character and separate sword prop are removed from the active scene. Asset provenance is recorded in `ASSET_MANIFEST.md`.
 
 ## Run
 
@@ -10,7 +10,7 @@ Serve this directory over HTTP/HTTPS, then open `index.html`:
 python3 -m http.server 8080
 ```
 
-Open `http://localhost:8080/`. The scene uses Three.js 0.183.0 and GLTFLoader from jsDelivr, with GLB character/weapon assets from the Cinevva CDN. A working network connection is required; this is not an offline build.
+Open `http://localhost:8080/`. The scene uses Three.js 0.183.0 and GLTFLoader from jsDelivr, with the warrior GLB from the Cinevva CDN. A working network connection is required; this is not an offline build.
 
 On iPhone, host over HTTPS and open in Safari. Physical iPhone 14 verification has not been completed.
 
@@ -37,11 +37,11 @@ The reference implementations were inspected during this change. Their code was 
 
 ## Asset caveat
 
-The imported models are complete pre-existing GLB assets, not custom-built mesh assemblies. They are not exact matches for the original brief: `Characters_Lis.glb` is a human character, not a deer-centaur forest spirit; `Knight_Male.glb` is a fantasy knight, not a silver-haired barbarian. The sword remains a separate prop; precise attachment to the warrior's hand has not been verified.
+The warrior is a complete pre-existing GLB asset, not a custom-built character. `Knight_Male.glb` is a fantasy knight rather than an archetype-matched silver-haired barbarian. The former forest-wanderer model and un-attached sword prop are not part of the active scene.
 
 ## Verification status
 
-This change has source-level integration only. It has **not yet been verified by a successful desktop/mobile browser render or physical iPhone test**. Runtime shader compilation, camera behaviour, touch input, performance, and visual quality still require inspection against genuine screenshots. The current environment also retains known limitations: simple procedural tree avoidance rather than BVH mesh collision, no confirmed walk/run animation mapping, and character grounding against a flat baseline rather than sampled terrain height.
+This change has source-level integration and an earlier browser capture, but the latest cleanup still needs a fresh screenshot from its exact source commit. Runtime shader compilation, camera behaviour, touch input, performance, and visual quality must be evaluated against genuine captures. Physical iPhone Safari has not been tested. The current environment also retains known limitations: simple procedural tree avoidance rather than BVH mesh collision, no confirmed walk/run animation mapping, and character grounding against a flat baseline rather than sampled terrain height.
 
 The prior raw-WebGL prototype is preserved at `index-procedural-backup.html` for comparison and recovery.
 
@@ -52,7 +52,7 @@ The experimental grass integration is isolated in `grass-system.js` and keeps th
 
 - Instanced, curved seven-blade clumps with deterministic placement and per-instance colour variation.
 - Vertex-shader wind combines broad, middle, and fine motion; the roots stay planted while the blade tips move.
-- The shader reads the controlled character's world-space X/Z position and heading. Movement samples fade out to create a short-lived directional wake.
+- The grass system supports a controlled character's world-space X/Z position and heading when exploration mode is enabled; the current cinematic-only scene supplies no active player state.
 - Grass placement uses the same height formula as the displaced ground mesh and excludes the central staging/path area and tree trunks.
 - Quality tiers are defined in `grass-system.js`; mobile devices reduce a requested quality level to bound draw cost.
 - `grassSystem.update(delta)` runs in the existing frame loop; `dispose()` removes the grass mesh and disposes its geometry/material.
@@ -62,7 +62,7 @@ This is a first implementation pass, **not yet browser-verified**. The smoke tes
 
 ## Cinematic meadow with optional exploration
 
-The scene keeps the latest terrain, vertex-colour variation, flowers, broad-leaf ground cover, small stones, and terrain-aligned trees. The camera remains cinematic by default; **Explore** is an optional mode rather than replacing the presentation scene. In Explore mode, the surviving warrior can move with WASD/arrow keys, sprint with Shift, jump with Space, or use the on-screen touch pad and Jump button. Dragging the scene steers the follow camera.
+The scene keeps the latest terrain, vertex-colour variation, flowers, broad-leaf ground cover, small stones, and terrain-aligned trees. The camera remains cinematic by default; **Explore** is an optional mode rather than replacing the presentation scene. The current experimental cinematic scene stages the warrior without the earlier exploration HUD and movement controls.
 
 Grass remains isolated in `grass-system.js`, a WebGL-compatible port for Three.js 0.183.0. Its instanced curved multi-blade tufts use the same terrain-height function as the ground, animate multi-scale wind in the vertex shader, and receive the active character's world-space position and heading while Explore mode is enabled. The character's path leaves a short directional wake that fades over time. No WebGPU/TSL imports or renderer upgrade are used.
 
