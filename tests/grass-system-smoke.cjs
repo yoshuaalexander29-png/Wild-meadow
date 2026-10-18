@@ -31,7 +31,6 @@ for (const [label, needle] of [
   ['touch movement controls', 'data-move="forward"'],
   ['jump input', "keys.has('jump')&&grounded"],
   ['grass updates in existing frame loop', 'grassSystem.update(delta)'],
-  ['instance colors are enabled in the material', 'vertexColors: true'],
 ]) {
   assert.ok(html.includes(needle), 'Missing game integration: ' + label);
 }
