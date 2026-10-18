@@ -5,7 +5,7 @@
 // This file is a focused original port for Three.js 0.183.0/WebGLRenderer;
 // it does not import the upstream TSL/WebGPU modules or generated demo data.
 
-const QUALITY_COUNTS = Object.freeze({ low: 850, medium: 2400, high: 4200 });
+const QUALITY_COUNTS = Object.freeze({ low: 850, medium: 3200, high: 5200 });
 const PALETTE = ['#496f3e', '#5f8246', '#73944d', '#86a354', '#a0ad60'];
 
 function mulberry32(seed) {
