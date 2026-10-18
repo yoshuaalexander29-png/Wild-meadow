@@ -29,6 +29,7 @@ const server = http.createServer((req, res) => {
     screenshots: [],
     grassModuleStatus: null,
     characterAssetStatus: null,
+    swordAssetStatus: null,
     moveControlCount: null,
     exploreEnabled: false,
     pageErrors: [],
@@ -51,6 +52,7 @@ const server = http.createServer((req, res) => {
       const url = response.url();
       if (new URL(url).pathname.endsWith('/grass-system.js')) report.grassModuleStatus = response.status();
       if (url.includes('Knight_Male.glb')) report.characterAssetStatus = response.status();
+      if (url.includes('Sword_Gold.glb')) report.swordAssetStatus = response.status();
     });
     await page.goto(report.url, { waitUntil: 'domcontentloaded', timeout: 60000 });
     await page.waitForSelector('canvas', { timeout: 30000 });
@@ -58,6 +60,7 @@ const server = http.createServer((req, res) => {
     await page.waitForTimeout(5000);
     assert.equal(report.grassModuleStatus, 200, 'grass-system.js must load');
     assert.equal(report.characterAssetStatus, 200, 'The warrior GLB must load');
+    assert.equal(report.swordAssetStatus, 200, 'The sword GLB must load');
     assert.equal(await page.locator('#explore-toggle').count(), 1, 'Explore toggle must exist');
     report.moveControlCount = await page.locator('[data-move]').count();
     assert.equal(report.moveControlCount, 5, 'Expected four directions and Jump');
