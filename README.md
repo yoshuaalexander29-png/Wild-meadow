@@ -60,10 +60,18 @@ The experimental grass integration is isolated in `grass-system.js` and keeps th
 This is a first implementation pass, **not yet browser-verified**. The smoke test exercises module construction and shader-source injection with test doubles; it does not prove GPU shader compilation, visual quality, mobile performance, or actual recovery appearance. See `THIRD_PARTY_NOTICES.md` for provenance and the MIT notice.
 
 
-## Visual-only fantasy meadow pass (experimental branch)
+## Cinematic meadow with optional exploration
 
-This branch now changes the scene from a HUD-led two-character prototype into a visual-only cinematic: the left-side `Characters_Lis.glb` character and gameplay controls are removed, while the warrior and optional sword remain. The automatic camera runs without user input.
+The scene keeps the latest terrain, vertex-colour variation, flowers, broad-leaf ground cover, small stones, and terrain-aligned trees. The camera remains cinematic by default; **Explore** is an optional mode rather than replacing the presentation scene. In Explore mode, the surviving warrior can move with WASD/arrow keys, sprint with Shift, jump with Space, or use the on-screen touch pad and Jump button. Dragging the scene steers the follow camera.
 
-The ground mesh now uses deterministic broad noise for restrained rolling terrain and per-vertex colour variation instead of a single solid green material. Grass remains in a separate `grass-system.js` WebGL-compatible instanced module; the desktop medium tier uses 3,200 multi-blade clumps and the mobile tier is reduced. Flower patches, broad-leaf ground cover and small stones use the same terrain-height function. Procedural tree bases are also placed at that terrain height. Imported warrior mesh materials are no longer forced to flat shading or have roughness overwritten.
+Grass remains isolated in `grass-system.js`, a WebGL-compatible port for Three.js 0.183.0. Its instanced curved multi-blade tufts use the same terrain-height function as the ground, animate multi-scale wind in the vertex shader, and receive the active character's world-space position and heading while Explore mode is enabled. The character's path leaves a short directional wake that fades over time. No WebGPU/TSL imports or renderer upgrade are used.
 
-**Verification status:** source checks and browser capture are being updated for this new visual-only branch. Existing screenshots documented in `VISUAL_REVIEW.md` are baseline captures of an earlier build and must not be represented as screenshots of this branch. Do not merge based on static checks alone; inspect the new desktop/mobile captures and actual shader/console output first. The original main branch and GitHub Pages deployment remain unchanged until this PR is merged.
+## Verification and screenshots
+
+- `node tests/grass-system-smoke.cjs` exercises the module API, deterministic scatter, shader-source injection, update/wake behavior, and disposal using test doubles.
+- `node tests/threejs-adaptation-smoke.cjs` checks scene, renderer, terrain, controls, and grass integration.
+- The GitHub Actions `browser-preview` job launches Chromium with software WebGL, loads the local page and external GLB asset, checks the grass module response, tests Explore and keyboard input, and captures desktop cinematic, desktop Explore, and mobile Explore screenshots as a workflow artifact.
+- Browser captures are evidence of the exact commit tested, not a promise that every device/GPU behaves identically. Physical iPhone Safari and performance benchmarking still require separate verification.
+- The original main branch and GitHub Pages deployment remain unchanged until the draft PR is reviewed and merged.
+
+See `THIRD_PARTY_NOTICES.md` for the upstream grass repository, adaptation scope, and MIT license notice.
