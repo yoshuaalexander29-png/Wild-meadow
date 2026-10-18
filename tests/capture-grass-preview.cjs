@@ -32,6 +32,7 @@ const server = http.createServer((req, res) => {
     moveControlCount: null,
     exploreEnabled: false,
     pageErrors: [],
+    consoleErrors: [],
     shaderErrors: [],
     failedRequests: [],
   };
@@ -40,7 +41,10 @@ const server = http.createServer((req, res) => {
     const page = await browser.newPage({ viewport, deviceScaleFactor: 1, isMobile: viewport.width < 700, hasTouch: viewport.width < 700 });
     page.on('pageerror', error => report.pageErrors.push(String(error)));
     page.on('console', message => {
-      if (message.type() === 'error' && /shader|compile|GL_INVALID|THREE\.WebGLProgram/i.test(message.text())) report.shaderErrors.push(message.text());
+      if (message.type() === 'error') {
+        report.consoleErrors.push(message.text());
+        if (/shader|compile|GL_INVALID|THREE\\.WebGLProgram/i.test(message.text())) report.shaderErrors.push(message.text());
+      }
     });
     page.on('requestfailed', request => report.failedRequests.push({ url: request.url(), error: request.failure()?.errorText }));
     page.on('response', response => {
