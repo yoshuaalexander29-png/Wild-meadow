@@ -5,8 +5,8 @@
 // This file is a focused original port for Three.js 0.183.0/WebGLRenderer;
 // it does not import the upstream TSL/WebGPU modules or generated demo data.
 
-const QUALITY_COUNTS = Object.freeze({ low: 850, medium: 3200, high: 5200 });
-const PALETTE = ['#496f3e', '#5f8246', '#73944d', '#86a354', '#a0ad60'];
+const QUALITY_COUNTS = Object.freeze({ low: 850, medium: 2400, high: 4200 });
+const PALETTE = ['#729d59', '#83ad65', '#96bc70', '#a7c87c', '#bdd58e'];
 
 function mulberry32(seed) {
   let state = seed >>> 0;
@@ -28,20 +28,20 @@ function buildTuftGeometry(THREE) {
   const indices = [];
   const bladeCount = 7;
   const rows = [0, 0.32, 0.63, 0.86, 1];
-  const height = 0.72;
+  const height = 0.58;
 
   for (let blade = 0; blade < bladeCount; blade++) {
     const angle = blade / bladeCount * Math.PI * 2 + (blade % 2) * 0.23;
     const rootRadius = 0.055 + (blade % 3) * 0.026;
     const rootX = Math.cos(angle) * rootRadius;
     const rootZ = Math.sin(angle) * rootRadius;
-    const lean = 0.12 + (blade % 4) * 0.045;
+    const lean = 0.22 + (blade % 4) * 0.075;
     const base = positions.length / 3;
 
     for (const t of rows) {
       const y = height * t * (1 - 0.12 * t * t) * (0.84 + (blade % 3) * 0.07);
       const reach = lean * height * Math.pow(t, 1.55);
-      const halfWidth = 0.052 * (1 - t) ** 0.82 + 0.0015;
+      const halfWidth = 0.064 * (1 - t) ** 0.82 + 0.002;
       const cx = rootX + Math.cos(angle) * reach;
       const cz = rootZ + Math.sin(angle) * reach;
       positions.push(cx - Math.sin(angle) * halfWidth, y, cz + Math.cos(angle) * halfWidth);
@@ -119,7 +119,7 @@ uniform vec4 uWake[10];`,
       '#include <begin_vertex>',
       `#include <begin_vertex>
 vec3 wmRoot = (instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
-float wmTip = pow(clamp(position.y / 0.72, 0.0, 1.0), 1.65);
+float wmTip = pow(clamp(position.y / 0.58, 0.0, 1.0), 1.65);
 float wmBroad = sin(dot(wmRoot.xz, vec2(0.76, 0.65)) * 0.16 - uGrassTime * 0.72);
 float wmMiddle = sin(dot(wmRoot.xz, vec2(-0.36, 0.93)) * 0.34 + uGrassTime * 1.13);
 float wmFine = sin(uGrassTime * 4.4 + wmRoot.x * 4.7 + wmRoot.z * 3.9);
@@ -180,7 +180,7 @@ transformed.z += wmLocalBend.y * wmTip;`,
 
     const y = getGroundHeight(x, z);
     if (!Number.isFinite(y)) continue;
-    const scale = 0.68 + rng() * 0.68;
+    const scale = 0.72 + rng() * 0.5;
     dummy.position.set(x, y - 0.035, z);
     dummy.rotation.set(0, rng() * Math.PI * 2, 0);
     dummy.scale.set(scale, scale, scale);
@@ -188,7 +188,7 @@ transformed.z += wmLocalBend.y * wmTip;`,
     mesh.setMatrixAt(placed, dummy.matrix);
 
     color.set(PALETTE[Math.floor(rng() * PALETTE.length)]);
-    color.multiplyScalar(0.86 + rng() * 0.28);
+    color.multiplyScalar(0.9 + rng() * 0.2);
     mesh.setColorAt(placed, color);
     placed++;
   }
