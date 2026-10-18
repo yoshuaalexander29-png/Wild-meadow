@@ -44,3 +44,17 @@ The imported models are complete pre-existing GLB assets, not custom-built mesh 
 This change has source-level integration only. It has **not yet been verified by a successful desktop/mobile browser render or physical iPhone test**. Runtime shader compilation, camera behaviour, touch input, performance, and visual quality still require inspection against genuine screenshots. The current environment also retains known limitations: simple procedural tree avoidance rather than BVH mesh collision, no confirmed walk/run animation mapping, and character grounding against a flat baseline rather than sampled terrain height.
 
 The prior raw-WebGL prototype is preserved at `index-procedural-backup.html` for comparison and recovery.
+
+
+## Reactive grass integration
+
+The experimental grass integration is isolated in `grass-system.js` and keeps the existing Three.js `0.183.0` `WebGLRenderer`. It adapts ideas from [matthew-kissinger/threejs-field-grass](https://github.com/matthew-kissinger/threejs-field-grass) without importing its Three.js 0.185.x TSL/WebGPU material.
+
+- Instanced, curved seven-blade clumps with deterministic placement and per-instance colour variation.
+- Vertex-shader wind combines broad, middle, and fine motion; the roots stay planted while the blade tips move.
+- The shader reads the controlled character's world-space X/Z position and heading. Movement samples fade out to create a short-lived directional wake.
+- Grass placement uses the same height formula as the displaced ground mesh and excludes the central staging/path area and tree trunks.
+- Quality tiers are defined in `grass-system.js`; mobile devices reduce a requested quality level to bound draw cost.
+- `grassSystem.update(delta)` runs in the existing frame loop; `dispose()` removes the grass mesh and disposes its geometry/material.
+
+This is a first implementation pass, **not yet browser-verified**. The smoke test exercises module construction and shader-source injection with test doubles; it does not prove GPU shader compilation, visual quality, mobile performance, or actual recovery appearance. See `THIRD_PARTY_NOTICES.md` for provenance and the MIT notice.
