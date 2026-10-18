@@ -1,6 +1,21 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"><meta name="theme-color" content="#b9d7b5"><title>Wild Meadow — Fantasy Meadow</title>
-<style>:root{color-scheme:light;background:#b9d8e2}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#b9d8e2}#stage{position:fixed;inset:0}canvas{display:block;width:100%;height:100%;touch-action:pan-x pan-y}#error{display:none}</style></head><body><div id="stage"></div><div id="error"></div>
+<style>:root{color-scheme:light;background:#b9d8e2}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#b9d8e2}#stage{position:fixed;inset:0}canvas{display:block;width:100%;height:100%;touch-action:pan-x pan-y}#error{display:none}</style><style>
+#explore-ui{position:fixed;top:max(10px,env(safe-area-inset-top));right:10px;z-index:5;display:flex;gap:6px}
+#explore-ui button{border:1px solid #ffffff65;border-radius:11px;background:#17372edb;color:#f8f3e3;font:700 12px system-ui;padding:10px 14px;min-height:40px;backdrop-filter:blur(12px);cursor:pointer}
+#explore-ui button:focus-visible,#touch-controls button:focus-visible{outline:3px solid #e7cf8a;outline-offset:2px}
+#touch-controls{display:none;position:fixed;left:14px;right:14px;bottom:max(18px,env(safe-area-inset-bottom));z-index:5;align-items:end;justify-content:space-between;pointer-events:none}
+#touch-controls button{pointer-events:auto;touch-action:none;width:43px;height:43px;min-height:43px;padding:0;border-radius:13px;background:#17372edb;border:1px solid #f4e8c56b;color:#f8f3e3;font:700 18px system-ui}
+#touch-controls .touch-pad>button{display:block;margin:0 auto 5px}
+#touch-controls .touch-pad>div{display:flex;gap:5px}
+#touch-controls .touch-jump{width:62px;height:62px;border-radius:50%;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+body.exploring #touch-controls{display:flex}
+@media(max-width:620px){#explore-ui{top:max(8px,env(safe-area-inset-top));right:8px;gap:4px}#explore-ui button{font-size:10px;padding:8px 9px;min-height:36px}#touch-controls{left:10px;right:10px;bottom:max(12px,env(safe-area-inset-bottom))}}
+</style></head><body><div id="stage"></div><div id="error"></div>
+<div id="explore-ui"><button id="explore-toggle" aria-pressed="false">Explore</button><button id="explore-reset">Restart</button></div>
+<div id="touch-controls" aria-label="Movement controls">
+<div class="touch-pad"><button data-move="forward" aria-label="Move forward">↑</button><div><button data-move="left" aria-label="Move left">←</button><button data-move="backward" aria-label="Move backward">↓</button><button data-move="right" aria-label="Move right">→</button></div></div>
+<button data-move="jump" class="touch-jump" aria-label="Jump">Jump</button></div>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.183.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.183.0/examples/jsm/"}}</script>
 <script type="module">
 import * as THREE from 'three';
@@ -44,7 +59,7 @@ for(let i=0;i<34;i++){let z=-5-rnd()*26,x=(rnd()-.5)*29;if(Math.abs(x)<3.4&&z>-9
 // Instanced, curved multi-blade tufts with shader wind and a bounded player wake.
 const grassSystem=createGrassSystem({
  THREE,scene,getGroundHeight:meadowGroundHeight,
- getPlayerState:()=>null,
+ getPlayerState:()=>{const hero=loaded[0];return hero?{x:hero.root.position.x,z:hero.root.position.z,heading:hero.root.rotation.y,active:exploreMode}:null},
  isExcluded:(x,z)=>{
   if(Math.abs(x)<2.65&&z>-8&&z<1.4)return true;
   if((x+1.7)**2+(z+1.3)**2<1.15**2||(x-1.55)**2+(z+1.5)**2<1.15**2)return true;
@@ -84,4 +99,62 @@ function loadCharacter(url,label,x,z,targetHeight,rotation=0){return new Promise
 const ASSETS={warrior:'https://cdn.cinevva.com/assets/packs/quaternius/ultimate-animated-characters/Knight_Male.glb?download=1',sword:'https://cdn.cinevva.com/assets/packs/quaternius/cube-world/Sword_Gold.glb?download=1'};
 const promiseWarrior=loadCharacter(ASSETS.warrior,'Silverland knight',0,-1.8,2.12,0).catch(e=>showError('Warrior (Quaternius Knight_Male.glb)',e));
 loader.load(ASSETS.sword,gltf=>{const weapon=gltf.scene,box=new THREE.Box3().setFromObject(weapon),size=box.getSize(new THREE.Vector3()),x=.95,z=-1.25,y=meadowGroundHeight(x,z);weapon.position.set(x,y+.035,z);weapon.scale.setScalar(.72/Math.max(size.y,.01));weapon.rotation.set(0,0,-Math.PI/2);weapon.traverse(o=>{if(o.isMesh)o.castShadow=false});scene.add(weapon)},undefined,e=>console.warn('Optional sword prop unavailable:',e));
-const shots=[{t:0,p:[0,6.4,18],look:[0,1,-8],f:47},{t:5,p:[-5.4,3.8,8.8],look:[0,1,-3],f:40},{t:10,p:[4.6,3,6.6],look:[0,1.1,-2],f:36},{t:15,p:[1.2,2.5,4.9],look:[0,1.2,-1.8],f:34},{t:22,p:[-1.5,4.9,11],look:[0,1,-5],f:43}];let start=performance.now();const clock=new THREE.Clock();function ease(v){return v*v*(3-2*v)}function cameraAt(t){let i=0;while(i<shots.length-2&&t>shots[i+1].t)i++;const a=shots[i],b=shots[i+1],u=ease(THREE.MathUtils.clamp((t-a.t)/(b.t-a.t),0,1));return {p:a.p.map((v,j)=>THREE.MathUtils.lerp(v,b.p[j],u)),look:a.look.map((v,j)=>THREE.MathUtils.lerp(v,b.look[j],u)),f:THREE.MathUtils.lerp(a.f,b.f,u)}}function frame(now){requestAnimationFrame(frame);const t=Math.max(0,(now-start)/1000),delta=Math.min(clock.getDelta(),.05);for(const c of loaded)if(c.mixer)c.mixer.update(delta);const sh=cameraAt(t%22);camera.fov=sh.f;camera.position.set(...sh.p);camera.lookAt(...sh.look);grassSystem.update(delta);camera.updateProjectionMatrix();if(innerWidth>=700)composer.render();else renderer.render(scene,camera)}function resize(){renderer.setPixelRatio(Math.min(devicePixelRatio||1,innerWidth<700?1:1.25));renderer.setSize(innerWidth,innerHeight);composer.setPixelRatio(Math.min(devicePixelRatio||1,1.25));composer.setSize(innerWidth,innerHeight);outlinePass.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()}addEventListener('resize',resize,{passive:true});renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();console.error('Wild Meadow WebGL context lost; reload to recover.')},{passive:false});Promise.resolve(promiseWarrior).catch(e=>console.error(e));requestAnimationFrame(frame);
+const shots=[{t:0,p:[0,6.4,18],look:[0,1,-8],f:47},{t:5,p:[-5.4,3.8,8.8],look:[0,1,-3],f:40},{t:10,p:[4.6,3,6.6],look:[0,1.1,-2],f:36},{t:15,p:[1.2,2.5,4.9],look:[0,1.2,-1.8],f:34},{t:22,p:[-1.5,4.9,11],look:[0,1,-5],f:43}];
+let start=performance.now(),exploreMode=false,exploreYaw=0,jumpVelocity=0,jumpHeight=0,grounded=true,dragging=false,lastPointerX=0;
+const keys=new Set();
+const moveCodes={KeyW:'forward',ArrowUp:'forward',KeyS:'backward',ArrowDown:'backward',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right',ShiftLeft:'sprint',ShiftRight:'sprint',Space:'jump'};
+addEventListener('keydown',e=>{if(moveCodes[e.code]){keys.add(moveCodes[e.code]);if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault()}});
+addEventListener('keyup',e=>{if(moveCodes[e.code])keys.delete(moveCodes[e.code])});
+addEventListener('blur',()=>keys.clear());
+document.querySelectorAll('[data-move]').forEach(button=>{
+ const key=button.dataset.move;
+ const down=e=>{e.preventDefault();keys.add(key);button.setPointerCapture?.(e.pointerId)};
+ const up=e=>{e.preventDefault();keys.delete(key)};
+ button.addEventListener('pointerdown',down);button.addEventListener('pointerup',up);button.addEventListener('pointercancel',up);button.addEventListener('lostpointercapture',()=>keys.delete(key));
+});
+function setExplore(enabled){
+ exploreMode=enabled;document.body.classList.toggle('exploring',enabled);keys.clear();
+ const button=document.querySelector('#explore-toggle');button.textContent=enabled?'Cinematic':'Explore';button.setAttribute('aria-pressed',String(enabled));
+ if(enabled){const hero=loaded[0];if(hero){exploreYaw=hero.root.rotation.y;const y=meadowGroundHeight(hero.root.position.x,hero.root.position.z);camera.position.set(hero.root.position.x+Math.sin(exploreYaw)*4.8,y+2.8,hero.root.position.z+Math.cos(exploreYaw)*4.8);camera.lookAt(hero.root.position.x,y+1,hero.root.position.z)}}
+ else {start=performance.now();jumpVelocity=0;jumpHeight=0;grounded=true}
+}
+document.querySelector('#explore-toggle').addEventListener('click',()=>setExplore(!exploreMode));
+document.querySelector('#explore-reset').addEventListener('click',()=>{setExplore(false);start=performance.now()});
+renderer.domElement.addEventListener('pointerdown',e=>{dragging=true;lastPointerX=e.clientX;renderer.domElement.setPointerCapture(e.pointerId)});
+renderer.domElement.addEventListener('pointermove',e=>{if(dragging&&exploreMode){exploreYaw-=(e.clientX-lastPointerX)*.005}lastPointerX=e.clientX});
+renderer.domElement.addEventListener('pointerup',()=>dragging=false);
+renderer.domElement.addEventListener('pointercancel',()=>dragging=false);
+const clock=new THREE.Clock();
+function ease(v){return v*v*(3-2*v)}
+function cameraAt(t){let i=0;while(i<shots.length-2&&t>shots[i+1].t)i++;const a=shots[i],b=shots[i+1],u=ease(THREE.MathUtils.clamp((t-a.t)/(b.t-a.t),0,1));return {p:a.p.map((v,j)=>THREE.MathUtils.lerp(v,b.p[j],u)),look:a.look.map((v,j)=>THREE.MathUtils.lerp(v,b.look[j],u)),f:THREE.MathUtils.lerp(a.f,b.f,u)}}
+function frame(now){
+ requestAnimationFrame(frame);
+ const t=Math.max(0,(now-start)/1000),delta=Math.min(clock.getDelta(),.05);
+ for(const c of loaded)if(c.mixer)c.mixer.update(delta);
+ const hero=loaded[0];
+ if(exploreMode&&hero){
+  const forward=(keys.has('forward')?1:0)-(keys.has('backward')?1:0),strafe=(keys.has('right')?1:0)-(keys.has('left')?1:0);
+  const moving=forward!==0||strafe!==0,speed=keys.has('sprint')?5.2:3.0,len=Math.hypot(forward,strafe)||1;
+  const dx=(Math.sin(exploreYaw)*forward+Math.cos(exploreYaw)*strafe)/len*speed*delta;
+  const dz=(-Math.cos(exploreYaw)*forward+Math.sin(exploreYaw)*strafe)/len*speed*delta;
+  let nx=THREE.MathUtils.clamp(hero.root.position.x+dx,-15,15),nz=THREE.MathUtils.clamp(hero.root.position.z+dz,-27,7);
+  for(const obstacle of treeCollision){const ox=nx-obstacle.x,oz=nz-obstacle.z,d=Math.hypot(ox,oz),min=obstacle.radius+.38;if(d<min&&d>.0001){nx=obstacle.x+ox/d*min;nz=obstacle.z+oz/d*min}}
+  if(keys.has('jump')&&grounded){jumpVelocity=4.2;grounded=false}
+  if(!grounded){jumpVelocity-=10.5*delta;jumpHeight+=jumpVelocity*delta;if(jumpHeight<=0){jumpHeight=0;jumpVelocity=0;grounded=true}}
+  hero.root.position.x=nx;hero.root.position.z=nz;hero.root.position.y=meadowGroundHeight(nx,nz)+jumpHeight;
+  if(moving)hero.root.rotation.y=Math.atan2(dx,-dz);
+  const baseY=meadowGroundHeight(nx,nz)+jumpHeight;
+  const desired=new THREE.Vector3(nx+Math.sin(exploreYaw)*4.8,baseY+2.8,nz+Math.cos(exploreYaw)*4.8);
+  camera.position.lerp(desired,1-Math.exp(-5*delta));camera.lookAt(nx,baseY+1.05,nz);
+ }else{
+  const sh=cameraAt(t%22);camera.fov=sh.f;camera.position.set(...sh.p);camera.lookAt(...sh.look);
+ }
+ grassSystem.update(delta);
+ camera.updateProjectionMatrix();
+ if(innerWidth>=700)composer.render();else renderer.render(scene,camera);
+}
+function resize(){renderer.setPixelRatio(Math.min(devicePixelRatio||1,innerWidth<700?1:1.25));renderer.setSize(innerWidth,innerHeight);composer.setPixelRatio(Math.min(devicePixelRatio||1,1.25));composer.setSize(innerWidth,innerHeight);outlinePass.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()}
+addEventListener('resize',resize,{passive:true});
+renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();console.error('Wild Meadow WebGL context lost; reload to recover.')},{passive:false});
+Promise.resolve(promiseWarrior).catch(e=>console.error(e));
+requestAnimationFrame(frame);const t=Math.max(0,(now-start)/1000),delta=Math.min(clock.getDelta(),.05);for(const c of loaded)if(c.mixer)c.mixer.update(delta);const sh=cameraAt(t%22);camera.fov=sh.f;camera.position.set(...sh.p);camera.lookAt(...sh.look);grassSystem.update(delta);camera.updateProjectionMatrix();if(innerWidth>=700)composer.render();else renderer.render(scene,camera)}function resize(){renderer.setPixelRatio(Math.min(devicePixelRatio||1,innerWidth<700?1:1.25));renderer.setSize(innerWidth,innerHeight);composer.setPixelRatio(Math.min(devicePixelRatio||1,1.25));composer.setSize(innerWidth,innerHeight);outlinePass.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()}addEventListener('resize',resize,{passive:true});renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();console.error('Wild Meadow WebGL context lost; reload to recover.')},{passive:false});Promise.resolve(promiseWarrior).catch(e=>console.error(e));requestAnimationFrame(frame);
