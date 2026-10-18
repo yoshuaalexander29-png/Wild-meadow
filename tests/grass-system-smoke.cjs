@@ -25,7 +25,11 @@ for (const [label, needle] of [
 for (const [label, needle] of [
   ['shared terrain height function', 'function meadowGroundHeight(x,z)'],
   ['grass uses terrain height', 'getGroundHeight:meadowGroundHeight'],
-  ['grass interaction disabled for visual-only showcase', 'getPlayerState:()=>null'],
+  ['grass interaction reads current character position', 'active:exploreMode'],
+  ['Explore mode toggle', 'id="explore-toggle"'],
+  ['keyboard movement mapping', "KeyW:'forward'"],
+  ['touch movement controls', 'data-move="forward"'],
+  ['jump input', "keys.has('jump')&&grounded"],
   ['grass updates in existing frame loop', 'grassSystem.update(delta)'],
   ['instance colors are enabled in the material', 'vertexColors: true'],
 ]) {
