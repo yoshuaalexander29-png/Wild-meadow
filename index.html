@@ -12,14 +12,14 @@ import { OutlinePass } from 'three/addons/postprocessing/OutlinePass.js';
 const stage=document.querySelector('#stage');
 const testQuery=new URLSearchParams(location.search),fixedShot=testQuery.has('shot'),requestedShot=fixedShot?THREE.MathUtils.clamp(Number(testQuery.get('shot'))||0,0,21.99):null;
 const diagnostics=testQuery.has('test')?(window.__wildMeadowDiagnostics={threeRevision:THREE.REVISION,renderer:'WebGLRenderer',loadedAssets:[],errors:[],frames:0,grassReady:false}):null;
-const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.25));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.0;stage.appendChild(renderer.domElement);
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.25));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;stage.appendChild(renderer.domElement);
 const scene=new THREE.Scene();scene.background=new THREE.Color('#b9d8e2');scene.fog=new THREE.Fog('#b9d8e2',34,96);
 const camera=new THREE.PerspectiveCamera(43,innerWidth/innerHeight,.1,120);camera.position.set(0,5.4,15.8);
 const composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,camera));
 const outlinePass=new OutlinePass(new THREE.Vector2(innerWidth,innerHeight),scene,camera);outlinePass.edgeStrength=1.05;outlinePass.edgeGlow=0;outlinePass.edgeThickness=1;outlinePass.pulsePeriod=0;outlinePass.visibleEdgeColor.set('#59695c');outlinePass.hiddenEdgeColor.set('#59695c');composer.addPass(outlinePass);
-scene.add(new THREE.HemisphereLight('#edf8ff','#9aa47a',1.75));const sun=new THREE.DirectionalLight('#fff1d8',2.55);sun.position.set(-9,15,7);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-24;sun.shadow.camera.right=24;sun.shadow.camera.top=24;sun.shadow.camera.bottom=-24;sun.shadow.camera.near=.5;sun.shadow.camera.far=65;sun.shadow.bias=-.00035;sun.shadow.normalBias=.025;scene.add(sun);
+scene.add(new THREE.HemisphereLight('#f1f8ff','#a8b38a',2.0));const sun=new THREE.DirectionalLight('#fff3df',2.8);sun.position.set(-9,15,7);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-24;sun.shadow.camera.right=24;sun.shadow.camera.top=24;sun.shadow.camera.bottom=-24;sun.shadow.camera.near=.5;sun.shadow.camera.far=65;sun.shadow.bias=-.00035;sun.shadow.normalBias=.025;scene.add(sun);
 // Three.js maintainer-authored MeshToonMaterial approach: quantized gradient ramp for a restrained cel-shaded environment.
-const toonRamp=new THREE.DataTexture(new Uint8Array([76,76,76,255,132,132,132,255,198,198,198,255,255,255,255,255]),4,1,THREE.RGBAFormat);
+const toonRamp=new THREE.DataTexture(new Uint8Array([105,105,105,255,158,158,158,255,218,218,218,255,255,255,255,255]),4,1,THREE.RGBAFormat);
 toonRamp.magFilter=THREE.NearestFilter;toonRamp.minFilter=THREE.NearestFilter;toonRamp.generateMipmaps=false;toonRamp.needsUpdate=true;
 const mat=(color,roughness=1)=>new THREE.MeshToonMaterial({color,gradientMap:toonRamp});
 // Shared broad terrain function drives both the mesh and vegetation placement.
@@ -40,7 +40,7 @@ for(const h of [[-14,-20,10,4,5,'#a9c3a0'],[-4,-24,12,5,5,'#98b995'],[10,-22,13,
 for(const h of [[-27,-39,17,9,8,'#b0c9b5'],[-13,-43,19,12,9,'#a5c2ad'],[6,-45,22,13,10,'#9dbba6'],[27,-40,18,10,9,'#b4cbb6'],[43,-46,20,12,10,'#a7c2ac']])hill(...h);
 // Original environmental staging; the hero characters below are loaded GLB assets, not procedural stand-ins.
 const seed=0x57494c44;let state=seed;const rnd=()=>((state=(Math.imul(state,1664525)+1013904223)>>>0)/4294967296);
-const treeCollision=[];const trunkMat=mat('#76563c'),leafMats=['#2d6046','#376f4b','#478052','#5b8c58'].map(c=>mat(c));
+const treeCollision=[];const trunkMat=mat('#856447'),leafMats=['#3b704f','#478158','#578f60','#6b9c68'].map(c=>mat(c));
 function tree(x,z,scale=1){const g=new THREE.Group();const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.17,.28,2.4,7),trunkMat);trunk.position.y=1.2;g.add(trunk);for(let i=0;i<5;i++){const crown=new THREE.Mesh(new THREE.IcosahedronGeometry(1,1),leafMats[(i+Math.floor(rnd()*3))%leafMats.length]);crown.position.set((rnd()-.5)*.7,2.0+i*.38,(rnd()-.5)*.5);crown.scale.set(1.0+rnd()*.35,.8+rnd()*.4,.85+rnd()*.3);crown.castShadow=true;crown.receiveShadow=true;g.add(crown)}trunk.castShadow=true;trunk.receiveShadow=true;g.position.set(x,meadowGroundHeight(x,z),z);g.scale.setScalar(scale);scene.add(g);treeCollision.push({x,z,radius:.48*scale});return g}
 for(let i=0;i<34;i++){let z=-5-rnd()*26,x=(rnd()-.5)*29;if(Math.abs(x)<3.4&&z>-9)continue;tree(x,z,.65+rnd()*.8)}
 // Instanced, curved multi-blade tufts with shader wind and a bounded player wake.
@@ -64,8 +64,7 @@ const leafGeo=new THREE.BufferGeometry();leafGeo.setAttribute('position',new THR
 for(let i=0;i<170;i++){const x=(rnd()-.5)*30,z=2-rnd()*29;if(Math.abs(x)<2.5&&z>-5)continue;const leaves=new THREE.Mesh(leafGeo,leafMaterials[Math.floor(rnd()*leafMaterials.length)]);leaves.position.set(x,meadowGroundHeight(x,z)-.015,z);leaves.rotation.y=rnd()*Math.PI*2;leaves.scale.setScalar(.6+rnd()*.8);scene.add(leaves)}
 const stoneMaterials=['#a9ad9b','#b8b29c','#8f9c91'].map(c=>new THREE.MeshStandardMaterial({color:c,roughness:1}));
 for(let i=0;i<34;i++){const x=(rnd()-.5)*30,z=1-rnd()*26;if(Math.abs(x)<2.4&&z>-5)continue;const stone=new THREE.Mesh(new THREE.IcosahedronGeometry(.12+rnd()*.19,1),stoneMaterials[i%stoneMaterials.length]);stone.position.set(x,meadowGroundHeight(x,z)+.025,z);stone.scale.set(1.2,.55,.8);stone.rotation.y=rnd()*Math.PI;scene.add(stone)}
-// Contact shadows are soft translucent discs, kept separate from model meshes.
-function shadow(x,z,sx,sz){const m=new THREE.Mesh(new THREE.CircleGeometry(1,24),new THREE.MeshBasicMaterial({color:'#26372a',transparent:true,opacity:.22,depthWrite:false}));m.rotation.x=-Math.PI/2;m.position.set(x,.008,z);m.scale.set(sx,sz,1);scene.add(m);return m}shadow(-1.65,-1.3,.8,.45);shadow(1.6,-1.4,.65,.4);
+// No decorative ground-disc shadows: these created two disconnected dark circles and a ghost-shadow effect.
 const loader=new GLTFLoader();const loaded=[];let loadCount=0;function showError(label,e){console.error('Wild Meadow asset load failed:',label,e);if(diagnostics)diagnostics.errors.push({label,message:String(e)});}
 // Adapted from ZaneAtega's GLSL anime-shader reference: add a restrained Fresnel rim to existing GLTF materials
 // without replacing their maps, skinning, or animation-compatible standard-material pipeline.
